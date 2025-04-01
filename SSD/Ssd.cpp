@@ -6,11 +6,11 @@
 const std::string SSD_NAND_PATH = "ssd_nand.txt";
 const std::string SSD_OUTPUT_PATH = "../Release/ssd_output.txt";
 
-Ssd::Ssd()
-{
-	m_ssdNandPath = SSD_NAND_PATH;
-	m_ssdOutputPath = SSD_OUTPUT_PATH;
-};
+//Ssd::Ssd()
+//{
+//	m_ssdNandPath = SSD_NAND_PATH;
+//	m_ssdOutputPath = SSD_OUTPUT_PATH;
+//};
 
 bool Ssd::excuteCommand(std::string commandLine)
 {
@@ -47,6 +47,8 @@ std::vector<std::string> Ssd::splitString(const std::string& str)
     {
         result.push_back(word);
     }
+
+    return result;
 }
 
 
