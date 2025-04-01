@@ -1,6 +1,7 @@
 #include "gmock/gmock.h"
-
-#define DEBUF_FLAG 0
+#include "Ssd.h"
+#include <iostream>
+#define DEBUG_FLAG 1
 
 int main()
 {
@@ -8,6 +9,12 @@ int main()
 	::testing::InitGoogleMock();
 	return RUN_ALL_TESTS();
 #else
+	std::string line;
+	std::getline(std::cin, line);
+
+	Ssd ssd;
+	ssd.excuteCommand(line);
+
 	return 0;
 #endif
 }

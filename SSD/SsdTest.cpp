@@ -1,5 +1,5 @@
 #include "gmock/gmock.h"
-#include "ISsdApi.cpp"
+#include "ISsdApi.h"
 #include <string>
 
 using namespace testing;

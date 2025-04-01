@@ -132,7 +132,6 @@
   <ItemGroup>
     <ClCompile Include="ISsdApi.h" />
     <ClCompile Include="Ssd.cpp" />
-    <ClCompile Include="ISsdApi.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SsdTest.cpp" />
   </ItemGroup>
