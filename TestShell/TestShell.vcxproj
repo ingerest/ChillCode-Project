@@ -129,6 +129,10 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="TestShell.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="..\packages\gmock.1.11.0\build\native\gmock.targets" Condition="Exists('..\packages\gmock.1.11.0\build\native\gmock.targets')" />
