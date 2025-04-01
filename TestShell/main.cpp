@@ -31,8 +31,6 @@ protected:
 };
 
 // TEST Case 1: "read" 명령어 처리
-{
-// TEST Case 1: "read" ��ɾ� ó��
 TEST_F(CommandTest, TestReadCommand) {
     executeTest("read 3", "3");
 }
