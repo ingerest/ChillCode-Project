@@ -1,8 +1,9 @@
-﻿#include "gmock/gmock.h"
+#include "gmock/gmock.h"
+#include "Testshell.cpp"
+#include "../SSD/ISsdApi.h"
+
 #include <iostream>
 #include <string>
-
-#include "Testshell.cpp"
 
 using namespace testing;
 
