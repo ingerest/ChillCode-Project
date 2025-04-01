@@ -20,7 +20,7 @@ public:
 };
 
 // 테스트 환경 설정
-class CommandTest : public ::testing::Test {
+class CommandTest : public ::Test {
 protected:
     MockCommandHandler mockCommandHandler;
 };
