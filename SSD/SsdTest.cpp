@@ -55,7 +55,7 @@ TEST(SSDTest, executeCommandLBAValueErrorInvalidValue1)
 {
     MockSSD mock;
 
-    std::string command = "W 100 0xAAAABB!!";
+    std::string command = "W 2 0xAAAABB!!";
 
     EXPECT_CALL(mock, excuteCommand(command))
         .Times(1)
@@ -68,7 +68,7 @@ TEST(SSDTest, executeCommandLBAValueErrorInvalidValue2)
 {
     MockSSD mock;
 
-    std::string command = "W 100 AxAAAABBBB";
+    std::string command = "W 2 AxAAAABBBB";
 
     EXPECT_CALL(mock, excuteCommand(command))
         .Times(1)
@@ -81,7 +81,7 @@ TEST(SSDTest, executeCommandLBAValueErrorByteOutOfRange)
 {
     MockSSD mock;
 
-    std::string command = "W 100 0xAAAABBAABBBB";
+    std::string command = "W 2 0xAAAABBAABBBB";
 
     EXPECT_CALL(mock, excuteCommand(command))
         .Times(1)
