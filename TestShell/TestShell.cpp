@@ -17,18 +17,55 @@ public:
     string execute(const string& userInput)
     {
         string command;
-        string arg1;
-        string arg2;
+        istringstream stream(userInput);
+        stream >> command;
 
-        splitCommand(userInput, command, arg1, arg2);
-
-        bool ret = m_pSsdApi->excuteCommand(userInput);
-
-        if (ret == true)
+        if (command == "read")
         {
-            // Need Implement output file read
-            return "3";
+            bool ret = m_pSsdApi->excuteCommand(userInput);
+
+            if (ret == true)
+            {
+                // Need Implement output file read
+                return "3";
+            }
         }
+        else if (command == "write")
+        {
+
+        }
+        else if (command == "exit")
+        {
+
+        }
+        else if (command == "help")
+        {
+
+        }
+        else if (command == "fullwrite")
+        {
+
+        }
+        else if (command == "fullread")
+        {
+
+        }
+        else
+        {
+            cout << "INVALID COMMAND";
+        }
+
+        return "";
+    }
+
+    void read()
+    {
+
+    }
+
+    void write()
+    {
+
     }
 
 private:
