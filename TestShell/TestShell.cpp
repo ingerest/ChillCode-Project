@@ -1,6 +1,9 @@
+#include <iostream>
+
 class TestShell {
 public:
-	TestShell();
-
-
+	std::string execute(const std::string& command)
+	{
+		return "3";
+	}
 };
