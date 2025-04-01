@@ -1,29 +1,38 @@
-﻿#include "gmock/gmock.h"
+#include "gmock/gmock.h"
+#include "Testshell.cpp"
+#include "../SSD/ISsdApi.h"
+
 #include <iostream>
 #include <string>
-
-#include "Testshell.cpp"
 
 using namespace testing;
 
 #ifdef _DEBUG
 
-// 테스트 환경 설정
+class MockSSD : public ISsdApi {
+public:
+    MOCK_METHOD(bool, excuteCommand, (std::string commandLine), (override));
+    //MOCK_METHOD(void, read, (const std::string&, int, int), (override));
+    //MOCK_METHOD(void, write, (const std::string&, int, int), (override));
+};
+
 class CommandTest : public Test {
 protected:
-    CommandTest() {
-        mockSSD mockSsd;
-        TestShell testShell(&mockSsd);
+    void executeTest(std::string input, std::string expect) {
+        MockSSD mock;
+
+        EXPECT_CALL(mock, excuteCommand(input))
+            .Times(1)
+            .WillRepeatedly(Return(true));
+
+        TestShell testShell(&mock);
+        EXPECT_EQ(testShell.execute(input), expect);
     }
 };
 
 // TEST Case 1: "read" 명령어 처리
-TEST_F(CommandTest, TestReadCommand01) {
-    //• 3번 LBA 를 읽는다.
-    EXPECT_CALL(mockSsd, read(3))
-        .Times(3);  // 3번 호출 확인
-
-    testShell.execute("read 5");
+TEST_F(CommandTest, TestReadCommand) {
+    executeTest("read 3", "3");
 }
 
 //TEST_F(CommandTest, TestReadCommand02) {
