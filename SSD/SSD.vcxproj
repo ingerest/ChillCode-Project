@@ -131,6 +131,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ISsdApi.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="SsdTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ssd_nand.txt" />
