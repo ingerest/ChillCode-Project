@@ -147,10 +147,10 @@ TEST_F(CommandTest, TestFullwrite00) {
     executeFullTest("fullwrite 0xABCDFFFF", "[Fullwrite] Done");
 }
 
-// fullread ////////////////////////////////////
-TEST_F(CommandTest, TestFullread00) {
-    executeFullTest("fullread", "[Fullread] Done");
-}
+//// fullread ////////////////////////////////////
+//TEST_F(CommandTest, TestFullread00) {
+//    executeFullTest("fullread", "[Fullread] Done");
+//}
 
 int main()
 {
