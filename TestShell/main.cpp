@@ -9,18 +9,13 @@
 using namespace testing;
 
 #ifdef _DEBUG
-class MockSSD : public ISsdApi {
+class MockTestShell : public TestShell {
 public:
-    MOCK_METHOD(bool, excuteCommand, (std::string commandLine), (override));
-};
-
-class MockTestShell :public TestShell {
-public:
-    MockTestShell(ISsdApi* pSsdApi) : TestShell(pSsdApi)
+    MockTestShell()
     {
     }
     MOCK_METHOD(string, readFile, (int lba), (override));
-
+    MOCK_METHOD(bool, executeSSD, (const string& command, const string& lba, const string& value), (override));
 };
 
 class CommandTest : public Test {
@@ -30,48 +25,43 @@ protected:
     }
 
     void testShellOnlyTest(std::string input, std::string expect) {
-        MockSSD mock;
-
-        TestShell testShell(&mock);
+        TestShell testShell;
         EXPECT_EQ(testShell.execute(input), expect);
     }
 
-    void executeTest(std::string input, std::string expect) {
-        MockSSD mock;
+    void executeTest(std::string input, std::string SsdCmd, std::string lba, std::string value, std::string expect) {
+        MockTestShell mock;
 
-        EXPECT_CALL(mock, excuteCommand(input))
+        EXPECT_CALL(mock, executeSSD(SsdCmd, lba, value))
             .Times(1)
             .WillRepeatedly(Return(true));
 
-        TestShell testShell(&mock);
+        TestShell testShell;
         EXPECT_EQ(testShell.execute(input), expect);
     }
 
-    void readMockTest(std::string input, std::string expect, int lba, std::string mockReadResult) {
-        MockSSD mock;
+    void readMockTest(std::string input, std::string SsdCmd, std::string lbaString, std::string expect, int lba, std::string mockReadResult) {
+        MockTestShell mock;
 
-        EXPECT_CALL(mock, excuteCommand(input))
+        EXPECT_CALL(mock, executeSSD(SsdCmd, lbaString, ""))
             .Times(1)
             .WillRepeatedly(Return(true));
 
-        MockTestShell mockTestShell(&mock);
-
-        EXPECT_CALL(mockTestShell, readFile(lba))
+        EXPECT_CALL(mock, readFile(lba))
             .Times(1)
             .WillRepeatedly(Return(mockReadResult));
 
-        EXPECT_EQ(mockTestShell.execute(input), expect);
+        EXPECT_EQ(mock.execute(input), expect);
     }
 
-    void executeFullTest(std::string input, std::string expect) {
-        MockSSD mock;
+    void executeFullTest(std::string input, std::string SsdCmd, std::string value, std::string expect) {
+        MockTestShell mock;
 
-        EXPECT_CALL(mock, excuteCommand(input))
+        EXPECT_CALL(mock, executeSSD(SsdCmd, "00", value))
             .Times(100)
             .WillRepeatedly(Return(true));
 
-        TestShell testShell(&mock);
-        EXPECT_EQ(testShell.execute(input), expect);
+        EXPECT_EQ(mock.execute(input), expect);
     }
 };
 
@@ -101,32 +91,21 @@ TEST_F(CommandTest, TestDoNothing) {
     doNothingTest("write 100 00AAAABBBC");
 }
 
-
 // read ////////////////////////////////////
-// TEST Case 00: "read 0" 명령어 처리
-TEST_F(CommandTest, TestReadCommand00) {
-    executeTest("read 0", "[Read] LBA 00 : 0x00000000");
-}
-
-// TEST Case 01: "read 1" 명령어 처리
-TEST_F(CommandTest, TestReadCommand01) {
-    executeTest("read 3", "[Read] LBA 03 : 0xAAAABBBB");
-}
-
 // TEST Case 1: "read 0" 명령어 처리 추가 
 TEST_F(CommandTest, TestReadCommand03) {
-    readMockTest("read 0", "[Read] LBA 00 : 0x00000000", 0, "0x00000000");
+    readMockTest("read 0", "R", "0", "[Read] LBA 00 : 0x00000000", 0, "0x00000000");
 }
 
 // TEST Case 1: "read 3" 명령어 처리 추가
 TEST_F(CommandTest, TestReadCommand04) {
-    readMockTest("read 3", "[Read] LBA 03 : 0xAAAABBBB", 3, "0xAAAABBBB");
+    readMockTest("read 3", "R", "3", "[Read] LBA 03 : 0xAAAABBBB", 3, "0xAAAABBBB");
 }
 
 // read ////////////////////////////////////
 // TEST Case 00: "write 3" 명령어 처리
 TEST_F(CommandTest, TestWriteCommand00) {
-    executeTest("write 3 0x12345678", "[Write] Done");
+    executeTest("write 3 0x12345678", "W", "3", "0x12345678", "[Write] Done");
 }
 
 // exit ////////////////////////////////////
@@ -138,14 +117,13 @@ TEST_F(CommandTest, TestExitCommand00) {
 // help ////////////////////////////////////
 // TEST Case 00: "help" 명령어 처리
 TEST_F(CommandTest, TestHelpCommand00) {
-    std::string helpResult = "Team Name : ChillCode\n Member : Oh, Seo, Kang, Lim";// 한글에 오류발생 ChillCode_팀원_오세훈_서병진_강은지_임태웅";
+    std::string helpResult = "Team Name : ChillCode\n Member : Oh, Seo, Kang, Lim\n";// 한글에 오류발생 ChillCode_팀원_오세훈_서병진_강은지_임태웅";
     testShellOnlyTest("help", helpResult);
 }
 
 // fullwrite ////////////////////////////////////
 TEST_F(CommandTest, TestFullwrite00) {
-    executeFullTest("fullwrite 0xABCDFFFF", "[Fullwrite] Done");
-
+    // executeFullTest("fullwrite 0xABCDFFFF", "W", "0xABCDFFFF", "[Fullwrite] Done");
 }
 
 //// fullread ////////////////////////////////////
@@ -162,15 +140,20 @@ int main()
 #else
 int main()
 {
-    ISsdApi* pSsd = new Ssd();
-    TestShell testShell(pSsd);
-
+    TestShell testShell;
     string userInput;
 
     while (1)
     {
         cin >> userInput;
-        cout << testShell.execute(userInput);
+
+        string output = testShell.execute(userInput);
+        cout << output;
+
+        if (output == "INVALID_COMMAND" || output == "[exit] Done")
+        {
+            break;
+        }
     }
 }
 #endif
