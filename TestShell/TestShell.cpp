@@ -97,6 +97,10 @@ public:
 
     }
 
+    string readFile() {
+        return "";
+    }
+
 private:
     ISsdApi* m_pSsdApi;
 
