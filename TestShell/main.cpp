@@ -26,14 +26,7 @@ public:
 class CommandTest : public Test {
 protected:
     void doNothingTest(std::string input) {
-        MockSSD mock;
-
-        EXPECT_CALL(mock, excuteCommand(input))
-            .Times(1)
-            .WillRepeatedly(Return(true));
-
-        TestShell testShell(&mock);
-        EXPECT_EQ(testShell.execute(input), "");
+        testShellOnlyTest(input, "");
     }
 
     void testShellOnlyTest(std::string input, std::string expect) {
@@ -74,19 +67,29 @@ protected:
 // 예외처리 ////////////////////////////////////
 //- 없는 명령어를 수행하는 경우 "INVALID COMMAND" 을 출력
 //    •어떠한 명령어를 입력하더라도 Runtime Error 가 나오면 안된다
-TEST_F(CommandTest, InvalidCommand) {
-    doNothingTest("jump");
-    doNothingTest("sdf");
-    doNothingTest("call");
+TEST_F(CommandTest, TestInvalidCommand00) {
+    executeTest("jump", "INVALID COMMAND");
+    executeTest("sdg", "INVALID COMMAND");
+    executeTest("call 1", "INVALID COMMAND");
+    executeTest("fill 3 0xAAAABBBZ", "INVALID COMMAND");
 }
+
 //- 입력받은 매개변수가 유효성 검사 수행
 //    • 파라미터의 Format 이 정확해야 함
 //    • LBA 범위는 0 ~99
 //    • A ~F, 0 ~9 까지 숫자 범위만 허용
+TEST_F(CommandTest, TestDoNothing) {
+    doNothingTest("read -1");
+    doNothingTest("read 100");
+    doNothingTest("read 1003");
+    doNothingTest("write 3 0xAAAABBBZ");
+    doNothingTest("write 3 1xAAAABBBK");
+    doNothingTest("write 3 00AAAABBBC");
+    doNothingTest("write -10 00AAAABBBC");
+    doNothingTest("write 1004 00AAAABBBC");
+    doNothingTest("write 100 00AAAABBBC");
+}
 
-//TEST(TG, EXCEPTION00) {
-//    doNothingTest("jump", "INVALID COMMAND");
-//}
 
 // read ////////////////////////////////////
 // TEST Case 00: "read 0" 명령어 처리
