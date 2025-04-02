@@ -41,24 +41,15 @@ public:
 
             if (ret == true)
             {
-                string lba;
-                stream >> lba;
+                string lbaString;
+                stream >> lbaString;
 
-                string value;
-
-                if (lba == "0")
-                {
-                    lba = "00";
-                    value = "00000000"; // = readOutputFile();
-                }
-                else if (lba == "3")
-                {
-                    lba = "03";
-                    value = "AAAABBBB"; // = readOutputFile();
-                }
+                int lba = getLba(lbaString);
+                string value = readFile(lba);
 
                 std::ostringstream oss;
-                oss << "[Read] LBA " << std::setw(2) << std::setfill('0') << std::hex << std::uppercase << lba
+                oss << "[Read] LBA " 
+                    << std::setw(2) << std::setfill('0') << lba
                     << " : 0x" << std::setw(8) << std::setfill('0') << value;
 
                 std::string result = oss.str();
@@ -102,8 +93,19 @@ public:
     }
 
 
-    string readFile() {
-        return "";
+    string readFile(int lba) {
+        string value = "";
+
+        if (lba == 0)
+        {
+            value = "0";
+        }
+        else if (lba == 3)
+        {
+            value = "AAAABBBB";
+        }
+
+        return value;
     }
 
 private:
@@ -116,4 +118,22 @@ private:
         stream >> arg1;
         stream >> arg2;
     }
+
+    int getLba(const string& lba)
+    {
+        for (char ch : lba) {
+            if (!std::isdigit(ch)) {
+                throw std::invalid_argument("INVALID COMMAND: Non-digit character found");
+            }
+        }
+
+        int num = std::stoi(lba);
+        if (num < 0 || num > 99) {
+            throw std::invalid_argument("INVALID COMMAND: Value out of range (0 to 99)");
+        }
+
+        return num;
+    }
+
+    
 };
