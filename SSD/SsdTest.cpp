@@ -24,11 +24,7 @@ public:
             .Times(1)
             .WillRepeatedly(Return(returnValue));
 
-        mock.excuteCommand(command);
-
-        bool result = ssd.excuteCommand(command);
-
-        EXPECT_EQ(returnValue, result);
+        EXPECT_EQ(mock.excuteCommand(command), ssd.excuteCommand(command));
     }
 };
 
