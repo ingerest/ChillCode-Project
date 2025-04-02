@@ -25,6 +25,17 @@ public:
 
 class CommandTest : public Test {
 protected:
+    void doNothingTest(std::string input) {
+        MockSSD mock;
+
+        EXPECT_CALL(mock, excuteCommand(input))
+            .Times(1)
+            .WillRepeatedly(Return(true));
+
+        TestShell testShell(&mock);
+        EXPECT_EQ(testShell.execute(input), "");
+    }
+
     void executeTest(std::string input, std::string expect) {
         MockSSD mock;
 
@@ -52,6 +63,23 @@ protected:
         EXPECT_EQ(mockTestShell.execute(input), expect);
     }
 };
+
+// 예외처리 ////////////////////////////////////
+//- 없는 명령어를 수행하는 경우 "INVALID COMMAND" 을 출력
+//    •어떠한 명령어를 입력하더라도 Runtime Error 가 나오면 안된다
+TEST_F(CommandTest, TestDoNothing) {
+    doNothingTest("jump");
+    doNothingTest("sdf");
+    doNothingTest("call");
+}
+//- 입력받은 매개변수가 유효성 검사 수행
+//    • 파라미터의 Format 이 정확해야 함
+//    • LBA 범위는 0 ~99
+//    • A ~F, 0 ~9 까지 숫자 범위만 허용
+
+//TEST(TG, EXCEPTION00) {
+//    doNothingTest("jump", "INVALID COMMAND");
+//}
 
 // read ////////////////////////////////////
 // TEST Case 00: "read 0" 명령어 처리
