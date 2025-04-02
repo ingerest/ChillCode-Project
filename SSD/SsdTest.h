@@ -14,23 +14,12 @@ public:
 
 class SsdUtil {
 public:
-    std::vector<std::string>splitString(const std::string& str)
+    const std::string SSD_NAND_PATH = "ssd_nand.txt";
+    const std::string SSD_OUTPUT_PATH = "../Release/ssd_output.txt";
+
+    std::string getLBA(const std::string& filePath, const std::string& findStr)
     {
-        std::vector<std::string> result;
-        std::istringstream iss(str);
-        std::string word;
-
-        while (iss >> word)
-        {
-            result.push_back(word);
-        }
-
-        return result;
-    }
-
-    std::string getWriteLBA(const std::string& findStr)
-    {
-        std::ifstream file(SSD_NAND_PATH);
+        std::ifstream file(filePath);
 
         if (!file) {
             return "";
@@ -45,25 +34,6 @@ public:
 
         return "";
     }
-
-    std::string getReadLBA()
-    {
-        std::ifstream file(SSD_OUTPUT_PATH);
-
-        if (!file) {
-            return "";
-        }
-
-        std::string line;
-        if (std::getline(file, line)) {
-            return line;
-        }
-
-        return "";
-    }
-private:
-    const std::string SSD_NAND_PATH = "ssd_nand.txt";
-    const std::string SSD_OUTPUT_PATH = "../Release/ssd_output.txt";
 };
 
 class MockSSD : public SsdTest {
@@ -96,11 +66,11 @@ public:
 
         if (ssd.excuteCommand(command))
         {
-            EXPECT_EQ(mock.commandResultTest(command), util.getWriteLBA(compareValue));
+            EXPECT_EQ(mock.commandResultTest(command), util.getLBA(util.SSD_NAND_PATH, compareValue));
         }
         else
         {
-            EXPECT_EQ(mock.commandResultTest(command), util.getReadLBA());
+            EXPECT_EQ(mock.commandResultTest(command), util.getLBA(util.SSD_OUTPUT_PATH, compareValue));
         }
     }
 
@@ -112,6 +82,6 @@ public:
 
         ssd.excuteCommand(command);
 
-        EXPECT_EQ(mock.commandResultTest(command), util.getReadLBA());
+        EXPECT_EQ(mock.commandResultTest(command), util.getLBA(util.SSD_OUTPUT_PATH, compareValue));
     }
 };
