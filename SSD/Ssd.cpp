@@ -1,5 +1,5 @@
 #include "Ssd.h"
-#include <algorithm>
+#include "CommandFactory.h"
 
 
 const string SSD_NAND_PATH = "ssd_nand.txt";
@@ -17,7 +17,7 @@ bool Ssd::excuteCommand(string commandLine)
 {
     if (commandLine == "") false;
 
-	std::vector<string> cmdLine = splitString(commandLine);
+	vector<string> cmdLine = splitString(commandLine);
 
     auto pCommand = cmdFactory.getCommandObjct(cmdLine[0]);
 
