@@ -1,4 +1,5 @@
 #include "Ssd.h"
+#include <algorithm>
 
 
 const string SSD_NAND_PATH = "ssd_nand.txt";
@@ -70,21 +71,21 @@ bool Command::checkVaildParameterAndStr2I()
         }
         string toData = m_commandParameter.data;
         toData.erase(0, 2);
+
+        std::transform(toData.begin(), toData.end(), toData.begin(), ::toupper);
+
         for (char each : toData)
         {
             if (each > '9' || each < '0')
             {
-                if (each > 'f' || each < 'a')
+                if (each > 'F' || each < 'A')
                 {
                     return false;
                 }
             }
         }
-    }
-    if (m_commandParameter.data != "")
-    {
-        string toData = m_commandParameter.data;
-        toData.erase(0, 2);
+        m_commandParameter.data = "0x" + toData;
+   
         size_t pos;
 
         auto aa = stoul(toData,&pos,16);
