@@ -24,7 +24,7 @@ public:
     }
 
     virtual bool executeSSD(const string& command, const string& lba, const string& value) {
-        string fullCommand = "../release/SSD.exe " + command + " " + lba;
+        string fullCommand = "..\\Release\\ssd.exe ssd " + command + " " + lba;
         if (command == "W") {
             fullCommand += " " + value;
         }
