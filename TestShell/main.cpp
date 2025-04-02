@@ -57,7 +57,7 @@ protected:
     void executeFullTest(std::string input, std::string SsdCmd, std::string value, std::string expect) {
         MockTestShell mock;
 
-        EXPECT_CALL(mock, executeSSD(SsdCmd, "00", value))
+        EXPECT_CALL(mock, executeSSD(SsdCmd, _, _))
             .Times(100)
             .WillRepeatedly(Return(true));
 
@@ -123,13 +123,50 @@ TEST_F(CommandTest, TestHelpCommand00) {
 
 // fullwrite ////////////////////////////////////
 TEST_F(CommandTest, TestFullwrite00) {
-    // executeFullTest("fullwrite 0xABCDFFFF", "W", "0xABCDFFFF", "[Fullwrite] Done");
+     executeFullTest("fullwrite 0xABCDFFFF", "W", "0xABCDFFFF", "[Fullwrite] Done");
 }
 
 //// fullread ////////////////////////////////////
-//TEST_F(CommandTest, TestFullread00) {
-//    executeFullTest("fullread", "[Fullread] Done");
-//}
+TEST(TG_FULL, TestFullread00) {
+    //////////////////////////////////////////////////
+    std::streambuf* original_buf; // 원래의 cout 버퍼
+    std::ostringstream buf; // 출력 내용을 저장할 버퍼
+
+    // 기존의 cout의 버퍼를 저장
+    original_buf = std::cout.rdbuf();
+    std::cout.rdbuf(buf.rdbuf());
+    //////////////////////////////////////////////////
+
+    std::string expected = "0x00000000";
+
+    TestShell testShell;
+    testShell.execute("fullread");
+
+    std::string str = buf.str();
+    // std::istringstream를 사용하여 문자열을 줄바꿈을 기준으로 처리
+    std::istringstream stream(str);
+    std::string line;
+
+    bool same = true;
+    int cnt = 0;
+    // 한 줄씩 읽어들여 처리
+    while (std::getline(stream, line)) {
+        // 각 줄을 처리
+        if (line != expected) {
+            same = false;
+            break;
+        }
+        cnt++;
+    }
+
+    EXPECT_EQ(same, true);  // 모든 값이 초기 값인지?
+    EXPECT_EQ(cnt, 100);    // 100개 모두 읽었는지?
+
+    //////////////////////////////////////////////////
+    // 출력 리디렉션을 원래대로 복원
+    std::cout.rdbuf(original_buf);
+    //////////////////////////////////////////////////
+}
 
 int main()
 {
