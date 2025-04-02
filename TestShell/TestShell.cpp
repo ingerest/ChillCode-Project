@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <iomanip>
+#include <stdexcept>
 
 #include "../SSD/ISsdApi.h"
 
@@ -16,6 +17,19 @@ public:
     }
 
     string execute(const string& userInput)
+    {
+        try 
+        {
+            string ret = processCommand(userInput);
+            return ret;
+        }
+        catch (const exception& e)
+        {
+            cout << e.what();
+        }
+    }
+
+    string processCommand(const string& userInput)
     {
         string command;
         istringstream stream(userInput);
@@ -83,19 +97,10 @@ public:
         }
         else
         {
-            cout << "INVALID COMMAND";
+            throw invalid_argument("INVALID COMMAND");
         }
     }
 
-    void read()
-    {
-
-    }
-
-    void write()
-    {
-
-    }
 
     string readFile() {
         return "";
