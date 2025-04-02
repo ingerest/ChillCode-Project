@@ -23,9 +23,9 @@ public:
         }
     }
 
-    virtual bool executeSSD(const string& command, const string& lba, const string& value = "") {
+    virtual bool executeSSD(const string& command, const string& lba, const string& value) {
         string fullCommand = "../release/SSD.exe " + command + " " + lba;
-        if (command == "write") {
+        if (command == "W") {
             fullCommand += " " + value;
         }
 
@@ -42,7 +42,7 @@ public:
 
         ifstream file(filePath);
         if (!file.is_open()) {
-            throw invalid_argument("File not found");
+            throw invalid_argument("");
         }
 
         string line;
@@ -95,7 +95,7 @@ private:
         stream >> lbaString;
         int lba = getLba(lbaString);
 
-        bool ret = executeSSD("R", lbaString);
+        bool ret = executeSSD("R", lbaString, "");
         if (ret) {
             string value = readFile(lba);
             return formatReadResult(lba, value);
@@ -111,7 +111,7 @@ private:
         string value;
         stream >> value;
         if (!validateValue(value)) {
-            throw invalid_argument("Invalid Value");
+            throw invalid_argument("");
         }
 
         bool ret = executeSSD("W", lbaString, value);
@@ -119,7 +119,7 @@ private:
     }
 
     string getHelpInfo() const {
-        return "Team Name : ChillCode\n Member : Oh, Seo, Kang, Lim";
+        return "Team Name : ChillCode\n Member : Oh, Seo, Kang, Lim\n";
     }
 
     string handleFullWriteCommand(istringstream& stream) {
@@ -146,7 +146,7 @@ private:
         string result;
         for (int lba = startLba; lba <= endLba; ++lba) {
             string lbaString = formatLBA(lba);
-            if (!executeSSD("R", lbaString)) {
+            if (!executeSSD("R", lbaString, "")) {
                 throw invalid_argument("");
             }
 
