@@ -38,7 +38,7 @@ protected:
         EXPECT_EQ(testShell.execute(input), expect);
     }
 
-    void executeMockTest(std::string input, std::string expect, std::string mockReadResult) {
+    void readMockTest(std::string input, std::string expect, std::string mockReadResult) {
         MockSSD mock;
 
         EXPECT_CALL(mock, excuteCommand(input))
