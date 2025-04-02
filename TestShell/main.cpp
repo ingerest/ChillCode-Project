@@ -19,7 +19,7 @@ public:
     MockTestShell(ISsdApi* pSsdApi) : TestShell(pSsdApi)
     {
     }
-    MOCK_METHOD(string, readFile, (), ());
+    MOCK_METHOD(string, readFile, (int lba), (override));
 
 };
 
@@ -36,6 +36,13 @@ protected:
         EXPECT_EQ(testShell.execute(input), "");
     }
 
+    void testShellOnlyTest(std::string input, std::string expect) {
+        MockSSD mock;
+
+        TestShell testShell(&mock);
+        EXPECT_EQ(testShell.execute(input), expect);
+    }
+
     void executeTest(std::string input, std::string expect) {
         MockSSD mock;
 
@@ -47,7 +54,7 @@ protected:
         EXPECT_EQ(testShell.execute(input), expect);
     }
 
-    void readMockTest(std::string input, std::string expect, std::string mockReadResult) {
+    void readMockTest(std::string input, std::string expect, int lba, std::string mockReadResult) {
         MockSSD mock;
 
         EXPECT_CALL(mock, excuteCommand(input))
@@ -56,7 +63,7 @@ protected:
 
         MockTestShell mockTestShell(&mock);
 
-        EXPECT_CALL(mockTestShell, readFile())
+        EXPECT_CALL(mockTestShell, readFile(lba))
             .Times(1)
             .WillRepeatedly(Return(mockReadResult));
 
@@ -67,7 +74,7 @@ protected:
 // 예외처리 ////////////////////////////////////
 //- 없는 명령어를 수행하는 경우 "INVALID COMMAND" 을 출력
 //    •어떠한 명령어를 입력하더라도 Runtime Error 가 나오면 안된다
-TEST_F(CommandTest, TestDoNothing) {
+TEST_F(CommandTest, InvalidCommand) {
     doNothingTest("jump");
     doNothingTest("sdf");
     doNothingTest("call");
@@ -94,12 +101,17 @@ TEST_F(CommandTest, TestReadCommand01) {
 
 // TEST Case 02: "read 2" 명령어 처리 추가 
 TEST_F(CommandTest, TestReadCommand02) {
-    readMockTest("read 0", "[Read] LBA 00 : 0x00000000", "0x00000000" );
+    executeTest("write 3", "[Write] Done");
 }
 
-// TEST Case 03: "read 3" 명령어 처리 추가
+// TEST Case 1: "read 0" 명령어 처리 추가 
 TEST_F(CommandTest, TestReadCommand03) {
-    readMockTest("read 3", "[Read] LBA 00 : 0xAAAABBBB", "0xAAAABBBB");
+    readMockTest("read 0", "[Read] LBA 00 : 0x00000000", 0, "0x00000000");
+}
+
+// TEST Case 1: "read 3" 명령어 처리 추가
+TEST_F(CommandTest, TestReadCommand04) {
+    readMockTest("read 3", "[Read] LBA 03 : 0xAAAABBBB", 3, "0xAAAABBBB");
 }
 
 // read ////////////////////////////////////
@@ -111,14 +123,14 @@ TEST_F(CommandTest, TestWriteCommand00) {
 // exit ////////////////////////////////////
 // TEST Case 00: "exit" 명령어 처리
 TEST_F(CommandTest, TestExitCommand00) {
-    executeTest("exit", "[exit] Done");
+    testShellOnlyTest("exit", "[exit] Done");
 }
 
 // help ////////////////////////////////////
 // TEST Case 00: "help" 명령어 처리
 TEST_F(CommandTest, TestHelpCommand00) {
     std::string helpResult = "Team Name : ChillCode\n Member : Oh, Seo, Kang, Lim";// 한글에 오류발생 ChillCode_팀원_오세훈_서병진_강은지_임태웅";
-    executeTest("help", helpResult);
+    testShellOnlyTest("help", helpResult);
 }
 
 int main()

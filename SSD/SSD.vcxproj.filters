@@ -49,5 +49,8 @@
     <ClInclude Include="Ssd.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="SsdTest.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
