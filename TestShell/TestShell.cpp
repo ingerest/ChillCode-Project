@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <iomanip>
+#include <stdexcept>
 
 #include "../SSD/ISsdApi.h"
 
@@ -17,6 +18,19 @@ public:
 
     string execute(const string& userInput)
     {
+        try 
+        {
+            string ret = processCommand(userInput);
+            return ret;
+        }
+        catch (const exception& e)
+        {
+            cout << e.what();
+        }
+    }
+
+    string processCommand(const string& userInput)
+    {
         string command;
         istringstream stream(userInput);
         stream >> command;
@@ -27,24 +41,15 @@ public:
 
             if (ret == true)
             {
-                string lba;
-                stream >> lba;
+                string lbaString;
+                stream >> lbaString;
 
-                string value;
-
-                if (lba == "0")
-                {
-                    lba = "00";
-                    value = "00000000"; // = readOutputFile();
-                }
-                else if (lba == "3")
-                {
-                    lba = "03";
-                    value = "AAAABBBB"; // = readOutputFile();
-                }
+                int lba = getLba(lbaString);
+                string value = readFile(lba);
 
                 std::ostringstream oss;
-                oss << "[Read] LBA " << std::setw(2) << std::setfill('0') << std::hex << std::uppercase << lba
+                oss << "[Read] LBA " 
+                    << std::setw(2) << std::setfill('0') << lba
                     << " : 0x" << std::setw(8) << std::setfill('0') << value;
 
                 std::string result = oss.str();
@@ -83,22 +88,24 @@ public:
         }
         else
         {
-            cout << "INVALID COMMAND";
+            throw invalid_argument("INVALID COMMAND");
         }
     }
 
-    void read()
-    {
 
-    }
+    string readFile(int lba) {
+        string value = "";
 
-    void write()
-    {
+        if (lba == 0)
+        {
+            value = "0";
+        }
+        else if (lba == 3)
+        {
+            value = "AAAABBBB";
+        }
 
-    }
-
-    string readFile() {
-        return "";
+        return value;
     }
 
 private:
@@ -111,4 +118,22 @@ private:
         stream >> arg1;
         stream >> arg2;
     }
+
+    int getLba(const string& lba)
+    {
+        for (char ch : lba) {
+            if (!std::isdigit(ch)) {
+                throw std::invalid_argument("INVALID COMMAND: Non-digit character found");
+            }
+        }
+
+        int num = std::stoi(lba);
+        if (num < 0 || num > 99) {
+            throw std::invalid_argument("INVALID COMMAND: Value out of range (0 to 99)");
+        }
+
+        return num;
+    }
+
+    
 };
