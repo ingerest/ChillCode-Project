@@ -1,6 +1,7 @@
 #include "gmock/gmock.h"
 #include "Testshell.cpp"
 #include "../SSD/ISsdApi.h"
+#include "../SSD/Ssd.h"
 
 #include <iostream>
 #include <string>
@@ -8,7 +9,6 @@
 using namespace testing;
 
 #ifdef _DEBUG
-
 class MockSSD : public ISsdApi {
 public:
     MOCK_METHOD(bool, excuteCommand, (std::string commandLine), (override));
@@ -79,10 +79,10 @@ protected:
 //- 없는 명령어를 수행하는 경우 "INVALID COMMAND" 을 출력
 //    •어떠한 명령어를 입력하더라도 Runtime Error 가 나오면 안된다
 TEST_F(CommandTest, TestInvalidCommand00) {
-    executeTest("jump", "INVALID COMMAND");
-    executeTest("sdg", "INVALID COMMAND");
-    executeTest("call 1", "INVALID COMMAND");
-    executeTest("fill 3 0xAAAABBBZ", "INVALID COMMAND");
+    testShellOnlyTest("jump", "INVALID COMMAND");
+    testShellOnlyTest("sdg", "INVALID COMMAND");
+    testShellOnlyTest("call 1", "INVALID COMMAND");
+    testShellOnlyTest("fill 3 0xAAAABBBZ", "INVALID COMMAND");
 }
 
 //- 입력받은 매개변수가 유효성 검사 수행
@@ -113,11 +113,6 @@ TEST_F(CommandTest, TestReadCommand01) {
     executeTest("read 3", "[Read] LBA 03 : 0xAAAABBBB");
 }
 
-// TEST Case 02: "read 2" 명령어 처리 추가 
-TEST_F(CommandTest, TestReadCommand02) {
-    executeTest("write 3", "[Write] Done");
-}
-
 // TEST Case 1: "read 0" 명령어 처리 추가 
 TEST_F(CommandTest, TestReadCommand03) {
     readMockTest("read 0", "[Read] LBA 00 : 0x00000000", 0, "0x00000000");
@@ -131,7 +126,7 @@ TEST_F(CommandTest, TestReadCommand04) {
 // read ////////////////////////////////////
 // TEST Case 00: "write 3" 명령어 처리
 TEST_F(CommandTest, TestWriteCommand00) {
-    executeTest("write 3", "[Write] Done");
+    executeTest("write 3 0x12345678", "[Write] Done");
 }
 
 // exit ////////////////////////////////////
@@ -166,6 +161,15 @@ int main()
 #else
 int main()
 {
+    ISsdApi* pSsd = new Ssd();
+    TestShell testShell(pSsd);
 
+    string userInput;
+
+    while (1)
+    {
+        cin >> userInput;
+        cout << testShell.execute(userInput);
+    }
 }
 #endif
