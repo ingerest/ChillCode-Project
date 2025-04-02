@@ -100,7 +100,7 @@ public:
 
     }
 
-    void readCommandTest(std::string command, std::string compareValue)
+    void readResultTest(std::string command, std::string compareValue)
     {
         EXPECT_CALL(mock, commandResultTest(command))
             .Times(1)

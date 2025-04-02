@@ -42,10 +42,10 @@ TEST_F(SsdFixture, commandResultReadError)
 
 TEST_F(SsdFixture, commandResultWriteSuccess)
 {
-    writeResultTest("W 0 0xAAAABBBB", "0 0xAAAABBBB");
+    readResultTest("W 0 0xAAAABBBB", "0 0xAAAABBBB");
 }
 
 TEST_F(SsdFixture, commandResultReadSuccess)
 {
-    writeResultTest("R 0", "0xAAAABBBB");
+    readResultTest("R 0", "0xAAAABBBB");
 }
