@@ -39,6 +39,9 @@
     <ClCompile Include="SsdTest.cpp">
       <Filter>테스트 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Command.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ssd_nand.txt">
@@ -50,6 +53,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="SsdTest.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Command.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

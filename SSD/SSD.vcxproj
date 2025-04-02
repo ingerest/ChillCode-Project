@@ -134,6 +134,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Command.cpp" />
     <ClCompile Include="ISsdApi.h" />
     <ClCompile Include="Ssd.cpp" />
     <ClCompile Include="main.cpp" />
@@ -143,6 +144,7 @@
     <Text Include="ssd_nand.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Command.h" />
     <ClInclude Include="Ssd.h" />
     <ClInclude Include="SsdTest.h" />
   </ItemGroup>

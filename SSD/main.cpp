@@ -1,7 +1,7 @@
 #include "gmock/gmock.h"
 #include "Ssd.h"
 #include <iostream>
-#define DEBUG_FLAG 1
+#define DEBUG_FLAG 0
 
 int main(int argc, char** argv)
 {
@@ -9,7 +9,8 @@ int main(int argc, char** argv)
 	::testing::InitGoogleMock();
 	return RUN_ALL_TESTS();
 #else
-	std::string commandLine;
+	std::string commandLine = "";
+	if (argc < 2) return 1;
 
 	for (int i = 1; i < argc; ++i) {
 		commandLine += argv[i];
