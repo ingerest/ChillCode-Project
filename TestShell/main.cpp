@@ -12,8 +12,6 @@ using namespace testing;
 class MockSSD : public ISsdApi {
 public:
     MOCK_METHOD(bool, excuteCommand, (std::string commandLine), (override));
-    MOCK_METHOD(void, read, (const std::string&, int, int), (override));
-    MOCK_METHOD(void, write, (const std::string&, int, int), (override));
 };
 
 class MockTestShell :public TestShell {
