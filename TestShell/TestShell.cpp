@@ -23,6 +23,44 @@ public:
         }
     }
 
+    virtual bool executeSSD(const string& command, const string& lba, const string& value = "") {
+        string fullCommand = "../release/SSD.exe " + command + " " + lba;
+        if (command == "write") {
+            fullCommand += " " + value;
+        }
+
+        int ret = std::system(fullCommand.c_str());
+        if (ret != 0 || isSsdError()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    virtual string readFile(int targetLba) {
+        string filePath = "../Release/ssd_output.txt";
+
+        ifstream file(filePath);
+        if (!file.is_open()) {
+            throw invalid_argument("File not found");
+        }
+
+        string line;
+        while (getline(file, line)) {
+            stringstream ss(line);
+            int lba;
+            string value;
+            ss >> lba >> value;
+            if (lba == targetLba) {
+                file.close();
+                return value;
+            }
+        }
+
+        file.close();
+        throw invalid_argument("");
+    }
+
 private:
     string processCommand(const string& userInput) {
         string command;
@@ -65,7 +103,6 @@ private:
         return "[Read] Error";
     }
 
-    // Handle write command
     string handleWriteCommand(istringstream& stream) {
         string lbaString;
         stream >> lbaString;
@@ -81,12 +118,10 @@ private:
         return ret ? "[Write] Done" : "[Write] Error";
     }
 
-    // Return help information
     string getHelpInfo() const {
         return "Team Name : ChillCode\n Member : Oh, Seo, Kang, Lim";
     }
 
-    // Handle fullwrite command
     string handleFullWriteCommand(istringstream& stream) {
         string value;
         stream >> value;
@@ -136,29 +171,6 @@ private:
         return oss.str();
     }
 
-    string readFile(int targetLba) {
-        string filePath = "../Release/ssd_output.txt";
-
-        ifstream file(filePath);
-        if (!file.is_open()) {
-            throw invalid_argument("File not found");
-        }
-
-        string line;
-        while (getline(file, line)) {
-            stringstream ss(line);
-            int lba;
-            string value;
-            ss >> lba >> value;
-            if (lba == targetLba) {
-                file.close();
-                return value;
-            }
-        }
-
-        file.close();
-        throw invalid_argument("");
-    }
 
     bool isSsdError() const {
         string filePath = "../Release/ssd_output.txt";
@@ -218,17 +230,4 @@ private:
         }
     }
 
-    bool executeSSD(const string& command, const string& lba, const string& value = "") {
-        string fullCommand = "../release/SSD.exe " + command + " " + lba;
-        if (command == "write") {
-            fullCommand += " " + value;
-        }
-
-        int ret = std::system(fullCommand.c_str());
-        if (ret != 0 || isSsdError()) {
-            return false;
-        }
-
-        return true;
-    }
 };
