@@ -1,6 +1,7 @@
 #include "gmock/gmock.h"
 #include "Testshell.cpp"
 #include "../SSD/ISsdApi.h"
+#include "../SSD/Ssd.h"
 
 #include <iostream>
 #include <string>
@@ -8,7 +9,6 @@
 using namespace testing;
 
 #ifdef _DEBUG
-
 class MockSSD : public ISsdApi {
 public:
     MOCK_METHOD(bool, excuteCommand, (std::string commandLine), (override));
@@ -145,6 +145,15 @@ int main()
 #else
 int main()
 {
+    ISsdApi* pSsd = new Ssd();
+    TestShell testShell(pSsd);
 
+    string userInput;
+
+    while (1)
+    {
+        cin >> userInput;
+        cout << testShell.execute(userInput);
+    }
 }
 #endif

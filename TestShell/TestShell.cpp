@@ -1,5 +1,4 @@
 #pragma once
-
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -68,7 +67,10 @@ public:
             {
                 result = "[Write] Done";
             }
-
+            else
+            {
+                throw invalid_argument("INVALID COMMAND");
+            }
             return result;
         }
         else if (command == "exit")
@@ -81,11 +83,49 @@ public:
         }
         else if (command == "fullwrite")
         {
+            string value;
+            stream >> value;
 
+            int startLba = 0;
+            int endLba = 99;
+
+            for (int lba = startLba; lba <= endLba; lba++)
+            {
+                std::ostringstream oss;
+                oss << "Write "
+                    << std::setw(2) << std::setfill('0') << lba
+                    << " " << std::setw(8) << std::setfill('0') << value;
+
+                std::string userInput = oss.str();
+
+                bool ret = m_pSsdApi->excuteCommand(userInput);
+                if (ret == false)
+                {
+                    throw invalid_argument("INVALID COMMAND");
+                }
+            }
+
+            return "[Full Write] Done";
         }
         else if (command == "fullread")
         {
+            int startLba = 0;
+            int endLba = 99;
 
+            string result;
+
+            for (int lba = startLba; lba <= endLba; lba++)
+            {
+                string value = readFile(lba);
+                std::ostringstream oss;
+                oss << "[Read] LBA "
+                    << std::setw(2) << std::setfill('0') << lba
+                    << " : " << std::setw(8) << std::setfill('0') << value;
+
+                result += oss.str();
+
+            }
+            return result;
         }
         else
         {
