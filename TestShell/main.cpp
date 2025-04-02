@@ -72,12 +72,12 @@ TEST_F(CommandTest, TestReadCommand02) {
 
 // TEST Case 1: "read 0" 명령어 처리 추가 
 TEST_F(CommandTest, TestReadCommand03) {
-    executeMockTest("read 0", "[Read] LBA 00 : 0x00000000", "0x00000000" );
+    readMockTest("read 0", "[Read] LBA 00 : 0x00000000", "0x00000000" );
 }
 
 // TEST Case 1: "read 3" 명령어 처리 추가
 TEST_F(CommandTest, TestReadCommand04) {
-    executeMockTest("read 3", "[Read] LBA 00 : 0xAAAABBBB", "0xAAAABBBB");
+    readMockTest("read 3", "[Read] LBA 00 : 0xAAAABBBB", "0xAAAABBBB");
 }
 
 //TEST_F(CommandTest, TestReadCommand02) {
