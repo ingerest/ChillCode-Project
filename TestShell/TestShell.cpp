@@ -9,7 +9,7 @@
 
 #include "../SSD/ISsdApi.h"
 
-string SSD_EXE_FILE_PATH = "../release/SSD.exe";
+string SSD_EXEFILE_PATH = "../release/SSD.exe";
 
 using namespace std;
 
@@ -166,6 +166,29 @@ public:
         throw invalid_argument("");
     }
 
+    virtual bool isSsdError() {
+        string filePath = "../Release/ssd_output.txt";
+
+        ifstream file(filePath);
+        string line;
+
+        if (!file.is_open()) {
+            throw invalid_argument("");
+        }
+
+        while (getline(file, line)) {
+            stringstream ss(line);
+
+            if (ss.str() == "ERROR")
+            {
+                return true;
+            }
+        }
+
+        file.close();
+        return false;
+    }
+
 private:
     void splitCommand(const string& userInput, string& command, string& arg1, string& arg2) {
         istringstream stream(userInput);
@@ -227,7 +250,7 @@ private:
     
     bool executeSSD(string command, string lba, string value = "")
     {
-        string fullCommand = SSD_EXE_FILE_PATH + " " + command + " " + lba;
+        string fullCommand = SSD_EXEFILE_PATH + " " + command + " " + lba;
 
         if (command == "W")
         {
@@ -239,7 +262,10 @@ private:
             throw invalid_argument("");
         }
 
-        // output.txt »Æ¿Œ
+        if (isSsdError() == true)
+        {
+            return false;
+        }
 
         return true;
     }
