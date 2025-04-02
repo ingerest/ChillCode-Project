@@ -30,7 +30,7 @@ public:
 
     std::string getWriteLBA(const std::string& findStr)
     {
-        std::ifstream file(SSD_OUTPUT_PATH);
+        std::ifstream file(SSD_NAND_PATH);
 
         if (!file) {
             return "";
@@ -94,10 +94,14 @@ public:
             .Times(1)
             .WillRepeatedly(Return(compareValue));
 
-        ssd.excuteCommand(command);
-
-        EXPECT_EQ(mock.commandResultTest(command), util.getWriteLBA(compareValue));
-
+        if (ssd.excuteCommand(command))
+        {
+            EXPECT_EQ(mock.commandResultTest(command), util.getWriteLBA(compareValue));
+        }
+        else
+        {
+            EXPECT_EQ(mock.commandResultTest(command), util.getReadLBA());
+        }
     }
 
     void readResultTest(std::string command, std::string compareValue)
