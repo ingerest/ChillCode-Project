@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -6,6 +6,10 @@
 #include <stdexcept>
 #include <fstream>
 #include <cstdlib>
+#include <windows.h>
+#include <shellapi.h>
+#include <io.h>  // _access 함수를 사용하려면 필요
+#include <filesystem>  // C++17 standard library
 
 #include "../SSD/ISsdApi.h"
 
@@ -24,13 +28,47 @@ public:
     }
 
     virtual bool executeSSD(const string& command, const string& lba, const string& value) {
-        string fullCommand = "..\\Release\\ssd.exe ssd " + command + " " + lba;
+        string fullCommand = command + " " + lba;
         if (command == "W") {
             fullCommand += " " + value;
         }
 
-        int ret = std::system(fullCommand.c_str());
-        if (ret != 0 || isSsdError()) {
+        string exePath1 = "../Release";
+        int isExist = _access(exePath1.c_str(), 0);
+
+        if (isExist == true)
+        {
+            cout << "Exist1\n";
+        }
+
+        char buffer[MAX_PATH];
+        if (GetCurrentDirectory(MAX_PATH, buffer)) {
+            std::cout << "Current working directory: " << buffer << std::endl;
+        }
+        else {
+            std::cerr << "Error getting current directory!" << std::endl;
+        }
+
+
+        SetCurrentDirectory(exePath1.c_str());
+
+        if (GetCurrentDirectory(MAX_PATH, buffer)) {
+            std::cout << "Changed working directory: " << buffer << std::endl;
+        }
+        else {
+            std::cerr << "Error getting current directory!" << std::endl;
+        }
+
+        ShellExecute(NULL,
+            "open",
+            "ssd.exe",
+            fullCommand.c_str(),
+            NULL,
+            SW_SHOW
+        );
+
+        
+        if (isSsdError()) {
             return false;
         }
 
@@ -39,26 +77,23 @@ public:
 
     virtual string readFile(int targetLba) {
         string filePath = "../Release/ssd_output.txt";
-
         ifstream file(filePath);
+
         if (!file.is_open()) {
             throw invalid_argument("");
         }
 
         string line;
-        while (getline(file, line)) {
-            stringstream ss(line);
-            int lba;
-            string value;
-            ss >> lba >> value;
-            if (lba == targetLba) {
-                file.close();
-                return value;
-            }
+        string value;
+
+        while (getline(file, line))
+        {
+            value = line.c_str();
+            cout << value;
         }
 
         file.close();
-        throw invalid_argument("");
+        return value;
     }
 
 private:
