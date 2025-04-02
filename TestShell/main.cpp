@@ -26,14 +26,7 @@ public:
 class CommandTest : public Test {
 protected:
     void doNothingTest(std::string input) {
-        MockSSD mock;
-
-        EXPECT_CALL(mock, excuteCommand(input))
-            .Times(1)
-            .WillRepeatedly(Return(true));
-
-        TestShell testShell(&mock);
-        EXPECT_EQ(testShell.execute(input), "");
+        testShellOnlyTest(input, "");
     }
 
     void testShellOnlyTest(std::string input, std::string expect) {
