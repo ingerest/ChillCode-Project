@@ -53,41 +53,45 @@ protected:
     }
 };
 
-// TEST Case 1: "read 0" 명령어 처리
+// read ////////////////////////////////////
+// TEST Case 00: "read 0" 명령어 처리
 TEST_F(CommandTest, TestReadCommand00) {
     executeTest("read 0", "[Read] LBA 00 : 0x00000000");
 }
 
-// TEST Case 1: "read 3" 명령어 처리
+// TEST Case 01: "read 1" 명령어 처리
 TEST_F(CommandTest, TestReadCommand01) {
     executeTest("read 3", "[Read] LBA 03 : 0xAAAABBBB");
 }
 
-// TEST Case 1: "write 3" 명령어 처리
+// TEST Case 02: "read 2" 명령어 처리 추가 
 TEST_F(CommandTest, TestReadCommand02) {
-    executeTest("write 3", "[Write] Done");
-}
-
-// TEST Case 1: "read 0" 명령어 처리 추가 
-TEST_F(CommandTest, TestReadCommand03) {
     readMockTest("read 0", "[Read] LBA 00 : 0x00000000", "0x00000000" );
 }
 
-// TEST Case 1: "read 3" 명령어 처리 추가
-TEST_F(CommandTest, TestReadCommand04) {
+// TEST Case 03: "read 3" 명령어 처리 추가
+TEST_F(CommandTest, TestReadCommand03) {
     readMockTest("read 3", "[Read] LBA 00 : 0xAAAABBBB", "0xAAAABBBB");
 }
 
-//TEST_F(CommandTest, TestReadCommand02) {
-//    //• 제작한ssd 프로그램을 실행시켜동작시킨다.
-//
-//}
-//
-//TEST_F(CommandTest, TestReadCommand03) {
-//    //• 읽은결과를화면에출력한다.
-//    //• 출력형태는자유롭게결정한다.
-//
-//}
+// read ////////////////////////////////////
+// TEST Case 00: "write 3" 명령어 처리
+TEST_F(CommandTest, TestWriteCommand00) {
+    executeTest("write 3", "[Write] Done");
+}
+
+// exit ////////////////////////////////////
+// TEST Case 00: "exit" 명령어 처리
+TEST_F(CommandTest, TestExitCommand00) {
+    executeTest("exit", "[exit] Done");
+}
+
+// help ////////////////////////////////////
+// TEST Case 00: "help" 명령어 처리
+TEST_F(CommandTest, TestHelpCommand00) {
+    std::string helpResult = "Team Name : ChillCode\n Member : Oh, Seo, Kang, Lim";// 한글에 오류발생 ChillCode_팀원_오세훈_서병진_강은지_임태웅";
+    executeTest("help", helpResult);
+}
 
 int main()
 {
