@@ -85,6 +85,9 @@ TEST_F(CommandTest, TestDoNothing) {
     doNothingTest("write 3 0xAAAABBBZ");
     doNothingTest("write 3 1xAAAABBBK");
     doNothingTest("write 3 00AAAABBBC");
+    doNothingTest("write -10 00AAAABBBC");
+    doNothingTest("write 1004 00AAAABBBC");
+    doNothingTest("write 100 00AAAABBBC");
 }
 
 
