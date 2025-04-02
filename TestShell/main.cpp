@@ -37,11 +37,11 @@ TEST_F(CommandTest, TestReadCommand00) {
 
 // TEST Case 1: "read 3" 명령어 처리
 TEST_F(CommandTest, TestReadCommand01) {
-    executeTest("read 3", "[Read] LBA 00 : 0xAAAABBBB");
+    executeTest("read 3", "[Read] LBA 03 : 0xAAAABBBB");
 }
 
 // TEST Case 1: "write 3" 명령어 처리
-TEST_F(CommandTest, TestReadCommand01) {
+TEST_F(CommandTest, TestReadCommand02) {
     executeTest("write 3", "[Write] Done");
 }
 //TEST_F(CommandTest, TestReadCommand02) {
