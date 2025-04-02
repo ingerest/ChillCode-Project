@@ -162,8 +162,7 @@ int main()
 #else
 int main()
 {
-    ISsdApi* pSsd = new Ssd();
-    TestShell testShell(pSsd);
+    TestShell testShell;
 
     string userInput;
 

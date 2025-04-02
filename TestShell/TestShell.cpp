@@ -5,17 +5,16 @@
 #include <iomanip>
 #include <stdexcept>
 #include <fstream>
+#include <cstdlib>
 
 #include "../SSD/ISsdApi.h"
+
+string SSD_EXE_FILE_PATH = "../release/SSD.exe";
 
 using namespace std;
 
 class TestShell {
 public:
-    TestShell(ISsdApi* pSsdApi) : m_pSsdApi(pSsdApi)
-    {
-    }
-
     string execute(const string& userInput)
     {
         try 
@@ -41,7 +40,7 @@ public:
             stream >> lbaString;
             int lba = getLba(lbaString);
 
-            bool ret = m_pSsdApi->excuteCommand(userInput);
+            bool ret = executeSSD(userInput, lbaString);
             if (ret == true)
             {
                 string value = readFile(lba);
@@ -71,7 +70,7 @@ public:
 
             std::string result = "";
 
-            bool ret = m_pSsdApi->excuteCommand(userInput);
+            bool ret = executeSSD(userInput, lbaString, value);
             if (ret)
             {
                 result = "[Write] Done";
@@ -100,14 +99,13 @@ public:
 
             for (int lba = startLba; lba <= endLba; lba++)
             {
-                std::ostringstream oss;
-                oss << "Write "
-                    << std::setw(2) << std::setfill('0') << lba
-                    << " " << std::setw(8) << std::setfill('0') << value;
+                std::ostringstream lbaString;
+                std::ostringstream valueString;
 
-                std::string userInput = oss.str();
+                lbaString << std::setw(2) << std::setfill('0') << lba;
+                valueString << std::setw(8) << std::setfill('0') << value;
 
-                bool ret = m_pSsdApi->excuteCommand(userInput);
+                bool ret = executeSSD(userInput, lbaString.str(), valueString.str());
                 if (ret == false)
                 {
                     throw invalid_argument("");
@@ -169,8 +167,6 @@ public:
     }
 
 private:
-    ISsdApi* m_pSsdApi;
-
     void splitCommand(const string& userInput, string& command, string& arg1, string& arg2) {
         istringstream stream(userInput);
 
@@ -229,4 +225,22 @@ private:
         return true;
     }
     
+    bool executeSSD(string command, string lba, string value = "")
+    {
+        string fullCommand = SSD_EXE_FILE_PATH + " " + command + " " + lba;
+
+        if (command == "W")
+        {
+            fullCommand += " " + value;
+        }
+
+        int ret = std::system(fullCommand.c_str());
+        if (ret != 0) {
+            throw invalid_argument("");
+        }
+
+        // output.txt »Æ¿Œ
+
+        return true;
+    }
 };
