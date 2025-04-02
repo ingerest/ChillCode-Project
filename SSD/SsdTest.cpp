@@ -1,5 +1,6 @@
 #include "gmock/gmock.h"
 #include "ISsdApi.h"
+#include "Ssd.h"
 #include <string>
 
 using namespace testing;
@@ -11,81 +12,53 @@ public:
     //MOCK_METHOD(void, write, (const std::string&, int, int), (override));
 };
 
-
-TEST(SSDTest, executeCommandSuccess)
+class SsdFixture : public Test
 {
+public:
     MockSSD mock;
+    Ssd ssd;
 
-    std::string command = "W 2 0xAAAABBBB";
+    void executeCommandTest(std::string command, bool returnValue)
+    {
+        EXPECT_CALL(mock, excuteCommand(command))
+            .Times(1)
+            .WillRepeatedly(Return(returnValue));
 
-    EXPECT_CALL(mock, excuteCommand(command))
-        .Times(1)
-        .WillRepeatedly(Return(true));
+        mock.excuteCommand(command);
 
-    mock.excuteCommand(command);
+        bool result = ssd.excuteCommand(command);
+
+        EXPECT_EQ(returnValue, result);
+    }
+};
+
+
+TEST_F(SsdFixture, executeCommandSuccess)
+{
+    executeCommandTest("W 2 0xAAAABBBB", true);
 }
 
-TEST(SSDTest, executeCommandInvalidCommand)
+TEST_F(SsdFixture, executeCommandInvalidCommand)
 {
-    MockSSD mock;
-
-    std::string command = "D 2 0xAAAABBBB";
-
-    EXPECT_CALL(mock, excuteCommand(command))
-        .Times(1)
-        .WillRepeatedly(Return(false));
-
-    mock.excuteCommand(command);
+    executeCommandTest("D 2 0xAAAABBBB", false);
 }
 
-TEST(SSDTest, executeCommandLBAOutOfRange)
+TEST_F(SsdFixture, executeCommandLBAOutOfRange)
 {
-    MockSSD mock;
-
-    std::string command = "W 100 0xAAAABBBB";
-
-    EXPECT_CALL(mock, excuteCommand(command))
-        .Times(1)
-        .WillRepeatedly(Return(false));
-
-    mock.excuteCommand(command);
+    executeCommandTest("W 100 0xAAAABBBB", false);
 }
 
-TEST(SSDTest, executeCommandLBAValueErrorInvalidValue1)
+TEST_F(SsdFixture, executeCommandLBAValueErrorInvalidValue1)
 {
-    MockSSD mock;
-
-    std::string command = "W 2 0xAAAABB!!";
-
-    EXPECT_CALL(mock, excuteCommand(command))
-        .Times(1)
-        .WillRepeatedly(Return(false));
-
-    mock.excuteCommand(command);
+    executeCommandTest("W 2 0xAAAABB!!", false);
 }
 
-TEST(SSDTest, executeCommandLBAValueErrorInvalidValue2)
+TEST_F(SsdFixture, executeCommandLBAValueErrorInvalidValue2)
 {
-    MockSSD mock;
-
-    std::string command = "W 2 AxAAAABBBB";
-
-    EXPECT_CALL(mock, excuteCommand(command))
-        .Times(1)
-        .WillRepeatedly(Return(false));
-
-    mock.excuteCommand(command);
+    executeCommandTest("W 2 AxAAAABBBB", false);
 }
 
-TEST(SSDTest, executeCommandLBAValueErrorByteOutOfRange)
+TEST_F(SsdFixture, executeCommandLBAValueErrorByteOutOfRange)
 {
-    MockSSD mock;
-
-    std::string command = "W 2 0xAAAABBAABBBB";
-
-    EXPECT_CALL(mock, excuteCommand(command))
-        .Times(1)
-        .WillRepeatedly(Return(false));
-
-    mock.excuteCommand(command);
+    executeCommandTest("W 2 0xAAAABBAABBBB", false);
 }

@@ -1,7 +1,7 @@
 #include "gmock/gmock.h"
 #include "Ssd.h"
 #include <iostream>
-#define DEBUG_FLAG 1
+#define DEBUG_FLAG 0
 
 int main()
 {
