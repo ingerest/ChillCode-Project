@@ -1,60 +1,51 @@
-#include "gmock/gmock.h"
-#include "ISsdApi.h"
-#include "Ssd.h"
-#include <string>
-
-using namespace testing;
-
-class MockSSD : public ISsdApi {
-public:
-    MOCK_METHOD(bool, excuteCommand, (std::string commandLine), (override));
-    //MOCK_METHOD(void, read, (const std::string&, int, int), (override));
-    //MOCK_METHOD(void, write, (const std::string&, int, int), (override));
-};
-
-class SsdFixture : public Test
-{
-public:
-    MockSSD mock;
-    Ssd ssd;
-
-    void executeCommandTest(std::string command, bool returnValue)
-    {
-        EXPECT_CALL(mock, excuteCommand(command))
-            .Times(1)
-            .WillRepeatedly(Return(returnValue));
-
-        EXPECT_EQ(mock.excuteCommand(command), ssd.excuteCommand(command));
-    }
-};
-
+#include "SsdTest.h"
 
 TEST_F(SsdFixture, executeCommandSuccess)
 {
-    executeCommandTest("W 2 0xAAAABBBB", true);
+    commandInvalidTest("W 2 0xAAAABBBB", true);
 }
 
 TEST_F(SsdFixture, executeCommandInvalidCommand)
 {
-    executeCommandTest("D 2 0xAAAABBBB", false);
+    commandInvalidTest("D 2 0xAAAABBBB", false);
 }
 
 TEST_F(SsdFixture, executeCommandLBAOutOfRange)
 {
-    executeCommandTest("W 100 0xAAAABBBB", false);
+    commandInvalidTest("W 100 0xAAAABBBB", false);
 }
 
 TEST_F(SsdFixture, executeCommandLBAValueErrorInvalidValue1)
 {
-    executeCommandTest("W 2 0xAAAABB!!", false);
+    commandInvalidTest("W 2 0xAAAABB!!", false);
 }
 
 TEST_F(SsdFixture, executeCommandLBAValueErrorInvalidValue2)
 {
-    executeCommandTest("W 2 AxAAAABBBB", false);
+    commandInvalidTest("W 2 AxAAAABBBB", false);
 }
 
 TEST_F(SsdFixture, executeCommandLBAValueErrorByteOutOfRange)
 {
-    executeCommandTest("W 2 0xAAAABBAABBBB", false);
+    commandInvalidTest("W 2 0xAAAABBAABBBB", false);
+}
+
+TEST_F(SsdFixture, commandResultWriteError)
+{
+    writeResultTest("W 100 0xAAAABBBB", "ERROR");
+}
+
+TEST_F(SsdFixture, commandResultReadError)
+{
+    writeResultTest("W 100 0xAAAABBBB", "ERROR");
+}
+
+TEST_F(SsdFixture, commandResultWriteSuccess)
+{
+    writeResultTest("W 0 0xAAAABBBB", "0 0xAAAABBBB");
+}
+
+TEST_F(SsdFixture, commandResultReadSuccess)
+{
+    writeResultTest("R 0", "0xAAAABBBB");
 }
