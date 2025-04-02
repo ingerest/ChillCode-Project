@@ -30,11 +30,20 @@ protected:
     }
 };
 
-// TEST Case 1: "read" 명령어 처리
-TEST_F(CommandTest, TestReadCommand) {
-    executeTest("read 3", "3");
+// TEST Case 1: "read 0" 명령어 처리
+TEST_F(CommandTest, TestReadCommand00) {
+    executeTest("read 0", "[Read] LBA 00 : 0x00000000");
 }
 
+// TEST Case 1: "read 3" 명령어 처리
+TEST_F(CommandTest, TestReadCommand01) {
+    executeTest("read 3", "[Read] LBA 00 : 0xAAAABBBB");
+}
+
+// TEST Case 1: "write 3" 명령어 처리
+TEST_F(CommandTest, TestReadCommand01) {
+    executeTest("write 3", "[Write] Done");
+}
 //TEST_F(CommandTest, TestReadCommand02) {
 //    //• 제작한ssd 프로그램을 실행시켜동작시킨다.
 //
