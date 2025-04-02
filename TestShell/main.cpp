@@ -62,6 +62,17 @@ protected:
 
         EXPECT_EQ(mockTestShell.execute(input), expect);
     }
+
+    void executeFullTest(std::string input, std::string expect) {
+        MockSSD mock;
+
+        EXPECT_CALL(mock, excuteCommand(input))
+            .Times(100)
+            .WillRepeatedly(Return(true));
+
+        TestShell testShell(&mock);
+        EXPECT_EQ(testShell.execute(input), expect);
+    }
 };
 
 // 예외처리 ////////////////////////////////////
@@ -130,6 +141,17 @@ TEST_F(CommandTest, TestHelpCommand00) {
     std::string helpResult = "Team Name : ChillCode\n Member : Oh, Seo, Kang, Lim";// 한글에 오류발생 ChillCode_팀원_오세훈_서병진_강은지_임태웅";
     testShellOnlyTest("help", helpResult);
 }
+
+// fullwrite ////////////////////////////////////
+TEST_F(CommandTest, TestFullwrite00) {
+    executeFullTest("fullwrite 0xABCDFFFF", "[Fullwrite] Done");
+
+}
+
+//// fullread ////////////////////////////////////
+//TEST_F(CommandTest, TestFullread00) {
+//    executeFullTest("fullread", "[Fullread] Done");
+//}
 
 int main()
 {
