@@ -163,13 +163,19 @@ int main()
 int main()
 {
     TestShell testShell;
-
     string userInput;
 
     while (1)
     {
         cin >> userInput;
-        cout << testShell.execute(userInput);
+
+        string output = testShell.execute(userInput);
+        cout << output;
+
+        if (output == "INVALID_COMMAND" || output == "[exit] Done")
+        {
+            break;
+        }
     }
 }
 #endif

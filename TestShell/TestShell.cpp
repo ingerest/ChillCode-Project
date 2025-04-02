@@ -9,8 +9,6 @@
 
 #include "../SSD/ISsdApi.h"
 
-string SSD_EXEFILE_PATH = "../release/SSD.exe";
-
 using namespace std;
 
 class TestShell {
@@ -221,7 +219,7 @@ private:
     }
 
     bool executeSSD(const string& command, const string& lba, const string& value = "") {
-        string fullCommand = SSD_EXEFILE_PATH + " " + command + " " + lba;
+        string fullCommand = "../release/SSD.exe " + command + " " + lba;
         if (command == "write") {
             fullCommand += " " + value;
         }
