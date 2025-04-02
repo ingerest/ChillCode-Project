@@ -5,6 +5,7 @@
 #include <string>
 #include <iomanip>
 #include <stdexcept>
+#include <fstream>
 
 #include "../SSD/ISsdApi.h"
 
@@ -50,7 +51,7 @@ public:
                 std::ostringstream oss;
                 oss << "[Read] LBA " 
                     << std::setw(2) << std::setfill('0') << lba
-                    << " : 0x" << std::setw(8) << std::setfill('0') << value;
+                    << " : " << std::setw(8) << std::setfill('0') << value;
 
                 std::string result = oss.str();
 
@@ -72,11 +73,11 @@ public:
         }
         else if (command == "exit")
         {
-
+            return "[exit] Done";
         }
         else if (command == "help")
         {
-
+            return "Team Name : ChillCode\n Member : Oh, Seo, Kang, Lim";
         }
         else if (command == "fullwrite")
         {
@@ -92,20 +93,30 @@ public:
         }
     }
 
+    virtual string readFile(int targetLba) {
+        string filePath = "../Release/ssd_output.txt";
 
-    string readFile(int lba) {
-        string value = "";
+        ifstream file(filePath);
+        string line;
 
-        if (lba == 0)
-        {
-            value = "0";
-        }
-        else if (lba == 3)
-        {
-            value = "AAAABBBB";
+        if (!file.is_open()) {
+            throw invalid_argument("Failed to open file.");
         }
 
-        return value;
+        while (getline(file, line)) {
+            stringstream ss(line);
+            int lba;
+            string value;
+
+            ss >> lba >> value;
+            if (lba == targetLba) {
+                file.close();
+                return value;
+            }
+        }
+
+        file.close();
+        throw invalid_argument("No matching lba");
     }
 
 private:
