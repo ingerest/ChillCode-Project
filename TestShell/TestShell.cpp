@@ -116,6 +116,16 @@ private:
         else if (command == "fullread") {
             return handleFullReadCommand();
         }
+        // Test Script
+        else if (command == "1_FullWriteAndReadCompare" || command == "1_") {
+            return handle1_FullWriteAndReadCompareCommand();
+        }
+        //else if (command == "2_PartialLBAWrite") {
+        //    return handleFullReadCommand();
+        //}
+        //else if (command == "3_WriteReadAging") {
+        //    return handleFullReadCommand();
+        //}
         else {
             throw invalid_argument("INVALID COMMAND");
         }
@@ -187,6 +197,69 @@ private:
         }
 
         return result;
+    }
+
+    //////////////// SCRIPT ////////////////////////////
+    std::string intToHexString(int value) {
+        std::stringstream ss;
+        ss << "0x"
+            << std::setw(8)       // 8자리로 설정 (32비트 크기)
+            << std::setfill('0')  // 0으로 채우기
+            << std::hex           // 16진수 형식으로 출력
+            << std::uppercase     // 대문자로 출력
+            << value;             // 정수 값 삽입
+        return ss.str();
+    }
+
+    bool writeScriptSubCommand(int lba, string value) {
+        string input = "write " + std::to_string(lba) + " " + value;
+        istringstream stream(input);
+        string command;
+        stream >> command;
+        string lbaString;
+        stream >> lbaString;
+        validateLBA(lbaString);
+
+        string result = handleWriteCommand(stream, lbaString);
+
+        if (result == "[Write] Done") return true;
+        return false;
+    };
+
+    bool readCompare(int lba, string expected) {
+        string input = "read " + std::to_string(lba);
+        istringstream stream(input);
+        string command;
+        stream >> command;
+        string lbaString;
+        stream >> lbaString;
+        validateLBA(lbaString);
+
+        string result = handleReadCommand(lbaString).substr(16, 26);
+
+        if (result == expected) return true;
+        return false;
+    };
+
+    string handle1_FullWriteAndReadCompareCommand() {
+        string inputs[100];
+
+        for (int i = 0; i < 100; i++) {
+            inputs[i] = intToHexString(i);
+            writeScriptSubCommand(i, inputs[i]);
+
+            if (i % 5 != 4) continue;
+
+            for (int j = 0; j < 5; j++) {
+                int idx = i - 4 + j;
+                if (readCompare(idx, inputs[idx]) == false) {
+                    cout << "i = " << i << ", j = " << j << std::endl;
+                    return "FAIL";
+                }
+            }
+
+        }
+        return "PASS";
     }
 
     string formatReadResult(const string& lba, const string& value) const {
