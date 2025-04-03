@@ -1,4 +1,5 @@
 #include "../TestShell/TestShell.cpp"
+#include "TestCommandFactory.h"
 #include <windows.h>
 #include <random>
 #include <iomanip>
@@ -11,26 +12,25 @@ bool runWriteReadAging(TestShell* shell);
 extern "C" __declspec(dllexport)
 int runTest(const char* command, TestShell* shell) {
 
-    string commandLine = string(command);
+    if (command == nullptr || shell == nullptr)
+    {
+        return -1;
+    }
+
+    const std::string commandLine(command);
 
     std::cout << "[Command] " << commandLine << std::endl;
 
-    if (commandLine == "1_FullWriteAndReadCompare")
-    {
-        return runFullWriteAndReadCompare(shell);
+    auto test = TestCommandFactory::create(commandLine, shell);
+    if (!test) {
+        std::cerr << "[Error] Unknown command: " << commandLine << std::endl;
+        return 0;
     }
-    else if (commandLine == "2_PartialLBAWrite")
-    {
-        return runPartialLBAWrite(shell);
-    }
-    else if (commandLine == "3_WriteReadAging")
-    {
-        return runWriteReadAging(shell);
-    }
-    return 0;
+
+    return test->execute();
 }
 
-string generateRandomValue() {
+/*string generateRandomValue() {
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<uint32_t> dist(0, 0xFFFFFFFF);
@@ -110,62 +110,6 @@ bool runWriteReadAging(TestShell* shell)
     return true;
 }
 
-bool runFullWriteAndReadCompare(TestShell* shell)
-{
-    int index = 0;
-    int endIndex = 0;
-    string writeCommand = "";
-    string readCommand = "";
-    string randValue = "";
-    string compareValue = "";
-    string result = "";
-
-    vector<string> writeBuffer;
-
-    std::ostringstream oss;
-
-    while (index < 100)
-    {
-        endIndex += 5;
-
-        for (int i = index; i < endIndex; i++)
-        {
-            randValue = generateRandomValue();
-            writeCommand = "write " + std::to_string(i) + " " + randValue;
-            writeBuffer.push_back(randValue);
-            result = shell->execute(writeCommand);
-
-            if (result == "[Write] Error")
-            {
-                return false;
-            }
-        }
-
-        for (int i = index; i < endIndex; i++)
-        {
-            readCommand = "read " + std::to_string(i);
-            result = shell->execute(readCommand);
-
-            if (result == "[Read] Error")
-            {
-                return false;
-            }
-
-            oss = std::ostringstream();
-            oss << std::setw(2) << std::setfill('0') << i;
-            compareValue = "[Read] LBA " + oss.str() + " : " + writeBuffer[i];
-            if ((result == compareValue) == false)
-            {
-                return false;
-            }
-        }
-
-        index += 5;
-    }
-
-    return true;
-}
-
 bool runPartialLBAWrite(TestShell* shell)
 {
     int index = 0;
@@ -235,4 +179,4 @@ bool runPartialLBAWrite(TestShell* shell)
     }
 
     return true;
-}
+}*/
