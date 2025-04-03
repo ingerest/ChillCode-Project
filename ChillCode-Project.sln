@@ -18,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Release", "Release", "{C8D5
 		Release\ssd_output.txt = Release\ssd_output.txt
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestScript", "TestScript\TestScript.vcxproj", "{1B4DA8C1-4F9C-4924-BAD8-306BA7854336}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -42,6 +44,14 @@ Global
 		{279EB329-2DA1-461E-A8F0-492A75208DFE}.Release|x64.Build.0 = Release|x64
 		{279EB329-2DA1-461E-A8F0-492A75208DFE}.Release|x86.ActiveCfg = Release|Win32
 		{279EB329-2DA1-461E-A8F0-492A75208DFE}.Release|x86.Build.0 = Release|Win32
+		{1B4DA8C1-4F9C-4924-BAD8-306BA7854336}.Debug|x64.ActiveCfg = Debug|x64
+		{1B4DA8C1-4F9C-4924-BAD8-306BA7854336}.Debug|x64.Build.0 = Debug|x64
+		{1B4DA8C1-4F9C-4924-BAD8-306BA7854336}.Debug|x86.ActiveCfg = Debug|Win32
+		{1B4DA8C1-4F9C-4924-BAD8-306BA7854336}.Debug|x86.Build.0 = Debug|Win32
+		{1B4DA8C1-4F9C-4924-BAD8-306BA7854336}.Release|x64.ActiveCfg = Release|x64
+		{1B4DA8C1-4F9C-4924-BAD8-306BA7854336}.Release|x64.Build.0 = Release|x64
+		{1B4DA8C1-4F9C-4924-BAD8-306BA7854336}.Release|x86.ActiveCfg = Release|Win32
+		{1B4DA8C1-4F9C-4924-BAD8-306BA7854336}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,6 +60,7 @@ Global
 		{E84A1D74-03EE-4433-99A4-188A645D162D} = {2A3A057F-5D22-31FD-628C-DF5EF75AEF1E}
 		{279EB329-2DA1-461E-A8F0-492A75208DFE} = {2A3A057F-5D22-31FD-628C-DF5EF75AEF1E}
 		{C8D5274F-AC00-46C7-1F8D-E88E81087A52} = {2A3A057F-5D22-31FD-628C-DF5EF75AEF1E}
+		{1B4DA8C1-4F9C-4924-BAD8-306BA7854336} = {2A3A057F-5D22-31FD-628C-DF5EF75AEF1E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D98E117B-CF05-4F94-8CDC-559EE51A5E58}
