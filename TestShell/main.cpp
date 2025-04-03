@@ -39,6 +39,14 @@ protected:
         TestShell testShell;
         EXPECT_EQ(testShell.execute(input), expect);
     }
+    void executeTest(std::string input, std::string value, std::string expect) {
+        std::string SsdCmd = getSsdCmd(input);
+        if (SsdCmd != "R" || SsdCmd != "W") return; // EXPECT 처리 필요
+        std::string lba = getLba(input);
+        if (lba == "") return;                // EXPECT 처리 필요
+
+        executeTest(input, SsdCmd, lba, value, expect);
+    }
 
     void readMockTest(std::string input, std::string SsdCmd, std::string lbaString, std::string expect, int lba, std::string mockReadResult) {
         MockTestShell mock;
@@ -53,8 +61,16 @@ protected:
 
         EXPECT_EQ(mock.execute(input), expect);
     }
+    void readMockTest(std::string input, std::string expect, std::string mockReadResult) {
+        std::string SsdCmd = getSsdCmd(input);
+        if (SsdCmd != "R" || SsdCmd != "W") return; // EXPECT 처리 필요
+        std::string lbaString = getLba(input);
+        if (lbaString == "") return;                // EXPECT 처리 필요
 
-    void executeFullTest(std::string input, std::string SsdCmd, std::string value, std::string expect) {
+        readMockTest(input, SsdCmd, lbaString, expect, stoi(lbaString), mockReadResult);
+    }
+
+    void executeFullwriteTest(std::string input, std::string SsdCmd, std::string value, std::string expect) {
         MockTestShell mock;
 
         EXPECT_CALL(mock, executeSSD(SsdCmd, _, _))
@@ -62,6 +78,37 @@ protected:
             .WillRepeatedly(Return(true));
 
         EXPECT_EQ(mock.execute(input), expect);
+    }
+    void executeFullwriteTest(std::string input, std::string value, std::string expect) {
+        std::string SsdCmd = getSsdCmd(input);
+        if (SsdCmd != "W") return; // EXPECT 처리 필요
+        
+        executeFullwriteTest(input, SsdCmd, value, expect);
+    }
+
+
+private:
+    std::string getSsdCmd(std::string input) {
+        size_t pos = input.find(' ');                       // 첫 번째 공백을 찾기
+        if (pos != std::string::npos) pos = input.length(); // 공백이 없으면 마지막 위치
+
+        input = input.substr(0, pos);                       // 첫 단어 추출
+
+        if (input == "read" || input == "fullread") return "R";
+        if (input == "write" || input == "fullwrite") return "W";
+        return "";
+    }
+
+    std::string getLba(std::string input) {
+        size_t pos = input.find(' ');               // 첫 번째 공백을 찾기
+        if (pos != std::string::npos) return "";    // 공백이 없으면 return
+
+        input = input.substr(pos, input.length());
+
+        pos = input.find(' ');                              // 두 번째 공백을 찾기
+        if (pos != std::string::npos) pos = input.length(); // 공백이 없으면 마지막 위치
+
+        return input.substr(0, pos);
     }
 };
 
@@ -94,18 +141,18 @@ TEST_F(CommandTest, TestDoNothing) {
 // read ////////////////////////////////////
 // TEST Case 1: "read 0" 명령어 처리 추가 
 TEST_F(CommandTest, TestReadCommand03) {
-    readMockTest("read 0", "R", "0", "[Read] LBA 00 : 0x00000000", 0, "0x00000000");
+    readMockTest("read 0", "[Read] LBA 00 : 0x00000000", "0x00000000");
 }
 
 // TEST Case 1: "read 3" 명령어 처리 추가
 TEST_F(CommandTest, TestReadCommand04) {
-    readMockTest("read 3", "R", "3", "[Read] LBA 03 : 0xAAAABBBB", 3, "0xAAAABBBB");
+    readMockTest("read 3", "[Read] LBA 03 : 0xAAAABBBB", "0xAAAABBBB");
 }
 
 // read ////////////////////////////////////
 // TEST Case 00: "write 3" 명령어 처리
 TEST_F(CommandTest, TestWriteCommand00) {
-    executeTest("write 3 0x12345678", "W", "3", "0x12345678", "[Write] Done");
+    executeTest("write 3 0x12345678", "0x12345678", "[Write] Done");
 }
 
 // exit ////////////////////////////////////
@@ -123,7 +170,7 @@ TEST_F(CommandTest, TestHelpCommand00) {
 
 // fullwrite ////////////////////////////////////
 TEST_F(CommandTest, TestFullwrite00) {
-     executeFullTest("fullwrite 0xABCDFFFF", "W", "0xABCDFFFF", "[Fullwrite] Done");
+    executeFullwriteTest("fullwrite 0xABCDFFFF", "W", "0xABCDFFFF", "[Fullwrite] Done");
 }
 
 //// fullread ////////////////////////////////////
