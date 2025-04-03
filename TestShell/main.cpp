@@ -36,8 +36,7 @@ protected:
             .Times(1)
             .WillRepeatedly(Return(true));
 
-        TestShell testShell;
-        EXPECT_EQ(testShell.execute(input), expect);
+        EXPECT_EQ(mock.execute(input), expect);
     }
     void executeTest(std::string input, std::string value, std::string expect) {
         std::string SsdCmd = getSsdCmd(input);
