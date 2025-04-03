@@ -134,17 +134,25 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Command.cpp" />
+    <ClCompile Include="CommandFactory.cpp" />
     <ClCompile Include="ISsdApi.h" />
+    <ClCompile Include="ReadCommand.cpp" />
     <ClCompile Include="Ssd.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SsdTest.cpp" />
+    <ClCompile Include="WriteCommand.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ssd_nand.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Command.h" />
+    <ClInclude Include="CommandFactory.h" />
+    <ClInclude Include="ReadCommand.h" />
     <ClInclude Include="Ssd.h" />
     <ClInclude Include="SsdTest.h" />
+    <ClInclude Include="WriteCommand.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

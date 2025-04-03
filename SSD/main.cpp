@@ -9,7 +9,8 @@ int main(int argc, char** argv)
 	::testing::InitGoogleMock();
 	return RUN_ALL_TESTS();
 #else
-	std::string commandLine;
+	std::string commandLine = "";
+	if (argc < 2) return 1;
 
 	for (int i = 1; i < argc; ++i) {
 		commandLine += argv[i];

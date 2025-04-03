@@ -225,13 +225,15 @@ int main()
 int main()
 {
     TestShell testShell;
-    string userInput;
 
     while (1)
     {
-        cin >> userInput;
+        std::string input;
 
-        string output = testShell.execute(userInput);
+        std::cout << "\n>>";
+        std::getline(std::cin, input);
+
+        string output = testShell.execute(input);
         cout << output;
 
         if (output == "INVALID_COMMAND" || output == "[exit] Done")
