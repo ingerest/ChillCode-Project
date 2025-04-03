@@ -37,14 +37,34 @@ public:
         string exePath = "../Release";
         SetCurrentDirectory(exePath.c_str());
 
-        ShellExecute(NULL,
-            "open",
-            "ssd.exe",
-            fullCommand.c_str(),
-            NULL,
-            SW_HIDE
-        );
+        if (runCommandAndWait("ssd.exe", fullCommand) == false)
+        {
+            throw invalid_argument("INVALID COMMAND");
+        }
     }
+
+    bool runCommandAndWait(const string& exe, const string& args) {
+        string fullPath = exe + " " + args;
+
+        STARTUPINFOA si = { sizeof(si) };
+        PROCESS_INFORMATION pi;
+
+        if (!CreateProcessA(
+            NULL,
+            const_cast<char*>(fullPath.c_str()),
+            NULL, NULL, FALSE,
+            0, NULL, NULL,
+            &si, &pi)) {
+            return false;
+        }
+
+        WaitForSingleObject(pi.hProcess, INFINITE);
+
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        return true;
+    }
+
 
     virtual string readFile() {
         string filePath = "../Release/ssd_output.txt";
