@@ -238,7 +238,7 @@ int main()
         string output = testShell.execute(input);
         cout << output;
 
-        if (output == "INVALID_COMMAND" || output == "[exit] Done")
+        if (output == "[exit] Done")
         {
             break;
         }
