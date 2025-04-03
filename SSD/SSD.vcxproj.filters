@@ -57,6 +57,9 @@
     <ClCompile Include="CommandBuffer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="FlushCommand.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ssd_nand.txt">
@@ -86,6 +89,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="CommandBuffer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="FlushCommand.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Bitmap128.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

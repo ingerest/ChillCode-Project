@@ -42,6 +42,13 @@ bool ReadCommand::parseCommandLine(string commandLine)
 
 
 bool ReadCommand::excuteCommand(string commandLine, string OutputFile, string WriteFile)
+{    
+    readLba();
+
+    return true;
+}
+
+bool ReadCommand::checkVaildParameter(string commandLine, string OutputFile, string WriteFile)
 {
     if (false == parseCommandLine(commandLine)) return false;
 
@@ -49,9 +56,6 @@ bool ReadCommand::excuteCommand(string commandLine, string OutputFile, string Wr
     m_commandParameter.WriteFile = WriteFile;
 
     if (false == checkVaildParameterAndStr2I()) return false;
-
-    readLba();
-
     return true;
 }
 

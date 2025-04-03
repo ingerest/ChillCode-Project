@@ -139,6 +139,7 @@
     <ClCompile Include="CommandBuffer.cpp" />
     <ClCompile Include="CommandFactory.cpp" />
     <ClCompile Include="EraseCommand.cpp" />
+    <ClCompile Include="FlushCommand.cpp" />
     <ClCompile Include="ISsdApi.h" />
     <ClCompile Include="ReadCommand.cpp" />
     <ClCompile Include="Ssd.cpp" />
@@ -150,10 +151,12 @@
     <Text Include="ssd_nand.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bitmap128.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="CommandBuffer.h" />
     <ClInclude Include="CommandFactory.h" />
     <ClInclude Include="EraseCommand.h" />
+    <ClInclude Include="FlushCommand.h" />
     <ClInclude Include="ReadCommand.h" />
     <ClInclude Include="Ssd.h" />
     <ClInclude Include="SsdTest.h" />

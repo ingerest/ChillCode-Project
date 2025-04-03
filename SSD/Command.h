@@ -23,7 +23,9 @@ class Command
 public:
 	string cmdName;
 	virtual bool excuteCommand(string commandLine, string OutputFile, string WriteFile) = 0;
-
+	virtual bool checkVaildParameter(string commandLine, string OutputFile, string WriteFile) = 0;
+	bool updateOutputFile(string data);
+	uint32_t getLba(void) { return m_commandParameter.nLba; }
 protected:
 	CommandParameter m_commandParameter;
 	virtual bool parseCommandLine(string commandLine) = 0;

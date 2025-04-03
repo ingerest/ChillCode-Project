@@ -2,6 +2,7 @@
 #include "ReadCommand.h"
 #include "WriteCommand.h"
 #include "EraseCommand.h"
+#include "FlushCommand.h"
 
 
 unique_ptr<Command> CommandFactory::getCommandObjct(string str)
@@ -19,6 +20,11 @@ unique_ptr<Command> CommandFactory::getCommandObjct(string str)
 	if (str == "E")
 	{
 		return make_unique<EraseCommand>();
+	}
+
+	if (str == "F")
+	{
+		return make_unique<FlushCommand>();
 	}
 
 	return nullptr;

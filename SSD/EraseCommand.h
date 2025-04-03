@@ -7,7 +7,8 @@ class EraseCommand : public Command
 {
 public:
 	string cmdName = "E";
-	bool excuteCommand(string commandLine, string OutputFile, string WriteFileP);
+	bool excuteCommand(string commandLine, string OutputFile, string WriteFile);
+	bool checkVaildParameter(string commandLine, string OutputFile, string WriteFile);
 private:
 	void eraseLba(void);
 	bool parseCommandLine(string commandLine);
