@@ -51,6 +51,9 @@
     <ClCompile Include="ReadCommand.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="EraseCommand.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ssd_nand.txt">
@@ -74,6 +77,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="WriteCommand.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="EraseCommand.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

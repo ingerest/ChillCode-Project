@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="CommandFactory.cpp" />
+    <ClCompile Include="EraseCommand.cpp" />
     <ClCompile Include="ISsdApi.h" />
     <ClCompile Include="ReadCommand.cpp" />
     <ClCompile Include="Ssd.cpp" />
@@ -149,6 +150,7 @@
   <ItemGroup>
     <ClInclude Include="Command.h" />
     <ClInclude Include="CommandFactory.h" />
+    <ClInclude Include="EraseCommand.h" />
     <ClInclude Include="ReadCommand.h" />
     <ClInclude Include="Ssd.h" />
     <ClInclude Include="SsdTest.h" />

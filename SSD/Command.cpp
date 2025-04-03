@@ -18,20 +18,25 @@ vector<string>splitString(const string& str)
     return result;
 }
 
+bool Command::updateErrorMsg2TextFile(void)
+{
+    ofstream ouputFile(m_commandParameter.OutputFile);
+    ouputFile << "ERROR";
+    ouputFile.close();
+    return false;
+ }
 
-bool Command::checkVaildParameterAndStr2I()
+bool Command::checkVaildParameterAndStr2I(void)
 {
     for (char each : m_commandParameter.lba)
     {
+        if (each == '-') return updateErrorMsg2TextFile();
         if (each > '9' || each < '0') return false;
     }
 
     if ((stoi(m_commandParameter.lba) > MAX_LBA) || (stoi(m_commandParameter.lba) < MIN_LBA))
     {
-        ofstream ouputFile(m_commandParameter.OutputFile);
-        ouputFile << "ERROR";
-        ouputFile.close();
-        return false;
+        return updateErrorMsg2TextFile();
     }
 
     if (m_commandParameter.data != "")

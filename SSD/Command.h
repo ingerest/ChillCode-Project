@@ -28,6 +28,7 @@ protected:
 	CommandParameter m_commandParameter;
 	virtual bool parseCommandLine(string commandLine) = 0;
 	bool checkVaildParameterAndStr2I(void);
+	bool updateErrorMsg2TextFile(void);
 
 private:
 	const uint32_t MAX_DATA_LENGTH = 10;
