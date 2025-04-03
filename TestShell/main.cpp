@@ -41,7 +41,7 @@ protected:
     }
     void executeTest(std::string input, std::string value, std::string expect) {
         std::string SsdCmd = getSsdCmd(input);
-        if (SsdCmd != "R" || SsdCmd != "W") return; // EXPECT 처리 필요
+        if (SsdCmd != "R" && SsdCmd != "W") return; // EXPECT 처리 필요
         std::string lba = getLba(input);
         if (lba == "") return;                // EXPECT 처리 필요
 
@@ -63,7 +63,7 @@ protected:
     }
     void readMockTest(std::string input, std::string expect, std::string mockReadResult) {
         std::string SsdCmd = getSsdCmd(input);
-        if (SsdCmd != "R" || SsdCmd != "W") return; // EXPECT 처리 필요
+        if (SsdCmd != "R" && SsdCmd != "W") return; // EXPECT 처리 필요
         std::string lbaString = getLba(input);
         if (lbaString == "") return;                // EXPECT 처리 필요
 
@@ -82,7 +82,7 @@ protected:
     void executeFullwriteTest(std::string input, std::string value, std::string expect) {
         std::string SsdCmd = getSsdCmd(input);
         if (SsdCmd != "W") return; // EXPECT 처리 필요
-        
+
         executeFullwriteTest(input, SsdCmd, value, expect);
     }
 
@@ -90,7 +90,7 @@ protected:
 private:
     std::string getSsdCmd(std::string input) {
         size_t pos = input.find(' ');                       // 첫 번째 공백을 찾기
-        if (pos != std::string::npos) pos = input.length(); // 공백이 없으면 마지막 위치
+        if (pos == std::string::npos) pos = input.length(); // 공백이 없으면 마지막 위치
 
         input = input.substr(0, pos);                       // 첫 단어 추출
 
@@ -101,12 +101,12 @@ private:
 
     std::string getLba(std::string input) {
         size_t pos = input.find(' ');               // 첫 번째 공백을 찾기
-        if (pos != std::string::npos) return "";    // 공백이 없으면 return
+        if (pos == std::string::npos) return "";    // 공백이 없으면 return
 
-        input = input.substr(pos, input.length());
+        input = input.substr(pos + 1, input.length());
 
         pos = input.find(' ');                              // 두 번째 공백을 찾기
-        if (pos != std::string::npos) pos = input.length(); // 공백이 없으면 마지막 위치
+        if (pos == std::string::npos) pos = input.length(); // 공백이 없으면 마지막 위치
 
         return input.substr(0, pos);
     }
