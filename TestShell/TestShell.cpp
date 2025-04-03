@@ -10,6 +10,7 @@
 #include <shellapi.h>
 #include <io.h>  // _access 함수를 사용하려면 필요
 #include <filesystem>  // C++17 standard library
+#include <random>
 
 #include "../SSD/ISsdApi.h"
 
@@ -120,12 +121,12 @@ private:
         else if (command == "1_FullWriteAndReadCompare" || command == "1_") {
             return handle1_FullWriteAndReadCompareCommand();
         }
-        //else if (command == "2_PartialLBAWrite") {
-        //    return handleFullReadCommand();
-        //}
-        //else if (command == "3_WriteReadAging") {
-        //    return handleFullReadCommand();
-        //}
+        else if (command == "2_PartialLBAWrite" || command == "2_") {
+            return handle2_PartialLBACommand();
+        }
+        else if (command == "3_WriteReadAging" || command == "3_") {
+            return handle3_WriteReadAgingCommand();
+        }
         else {
             throw invalid_argument("INVALID COMMAND");
         }
@@ -200,6 +201,27 @@ private:
     }
 
     //////////////// SCRIPT ////////////////////////////
+    unsigned int generateRandomHex() {
+        // 난수 생성 엔진 설정
+        std::random_device rd;
+        std::mt19937 gen(rd()); // Mersenne Twister 엔진
+        std::uniform_int_distribution<unsigned int> dist(0, 0xFFFFFFFF);
+
+        // 랜덤 값 생성
+        return dist(gen);
+    }
+
+    std::string unsignedIntToHexString(unsigned int value) {
+        std::stringstream ss;
+        ss << "0x"
+            << std::setw(8)       // 8자리로 설정 (32비트 크기)
+            << std::setfill('0')  // 0으로 채우기
+            << std::hex           // 16진수 형식으로 출력
+            << std::uppercase     // 대문자로 출력
+            << value;             // 정수 값 삽입
+        return ss.str();
+    }
+
     std::string intToHexString(int value) {
         std::stringstream ss;
         ss << "0x"
@@ -253,7 +275,6 @@ private:
             for (int j = 0; j < 5; j++) {
                 int idx = i - 4 + j;
                 if (readCompare(idx, inputs[idx]) == false) {
-                    cout << "i = " << i << ", j = " << j << std::endl;
                     return "FAIL";
                 }
             }
@@ -261,6 +282,51 @@ private:
         }
         return "PASS";
     }
+
+    string handle2_PartialLBACommand() {
+        string inputs[30];
+
+        for (int i = 0; i < 30; i++) {
+            inputs[i] = intToHexString(i);
+            writeScriptSubCommand(4, inputs[i]);
+            writeScriptSubCommand(0, inputs[i]);
+            writeScriptSubCommand(3, inputs[i]);
+            writeScriptSubCommand(1, inputs[i]);
+            writeScriptSubCommand(2, inputs[i]);
+
+            for (int j = 0; j < 5; j++) {
+                int idx = j;
+                if (readCompare(idx, inputs[i]) == false) {
+                    return "FAIL";
+                }
+            }
+        }
+        return "PASS";
+    }
+
+    string handle3_WriteReadAgingCommand() {
+        string inputs[200];
+
+        for (int i = 0; i < 30; i++) {
+            inputs[i] = unsignedIntToHexString(generateRandomHex());
+            writeScriptSubCommand(0, inputs[i]);
+            writeScriptSubCommand(99, inputs[i]);
+
+            if (readCompare(0, inputs[i]) == false) return "FAIL";
+            if (readCompare(99, inputs[i]) == false) return "FAIL";
+        }
+        return "PASS";
+    }
+
+
+
+
+
+
+
+
+
+
 
     string formatReadResult(const string& lba, const string& value) const {
         std::ostringstream oss;
