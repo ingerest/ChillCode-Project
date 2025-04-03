@@ -117,6 +117,12 @@ private:
         else if (command == "fullread") {
             return handleFullReadCommand();
         }
+        else if (command == "erase") {
+            return handleEraseCommand(stream);
+        }
+        else if (command == "erase_range") {
+            //return handleEraseRangeCommand();
+        }
         // Test Script
         else if (command == "1_FullWriteAndReadCompare" || command == "1_") {
             return handle1_FullWriteAndReadCompareCommand();
@@ -130,6 +136,49 @@ private:
         else {
             throw invalid_argument("INVALID COMMAND");
         }
+    }
+
+    string handleEraseCommand(std::istringstream& stream)
+    {
+        string startLba, sizeInString;
+        stream >> startLba;
+        validateLBA(startLba);
+
+        stream >> sizeInString;
+
+        int maxLba = 99;
+        int size = stoi(sizeInString);
+        int lba = stoi(startLba);
+        int chunkSize = 10;
+
+        while (size > 0 && lba <= maxLba) {
+            int currentChunkSize;
+            if (size > chunkSize) {
+                currentChunkSize = chunkSize;
+            }
+            else {
+                currentChunkSize = size;
+            }
+
+            if (lba + currentChunkSize - 1 > maxLba)
+            {
+                currentChunkSize = maxLba - lba +1;
+            }
+
+            cout << "E " + to_string(lba) + " " + to_string(currentChunkSize) + "\n";
+            // executeSSD("E", to_string(lba), to_string(currentChunkSize));
+
+            lba += currentChunkSize;
+            size -= currentChunkSize;
+        }
+
+        string value = readFile();
+        if (value == "ERROR")
+        {
+            return "[Erase] Error";
+        }
+
+        return "[Erase] Done";
     }
 
     string handleWriteCommand(std::istringstream& stream, std::string& lbaString)
