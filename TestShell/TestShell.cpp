@@ -12,12 +12,13 @@
 #include <filesystem>  // C++17 standard library
 #include <random>
 
-#include "../SSD/ISsdApi.h"
+#include "Logger.cpp"
 
 using namespace std;
 
 class TestShell {
 public:
+
     string execute(const string& userInput) {
         try {
             string output = processCommand(userInput);
@@ -29,6 +30,8 @@ public:
     }
 
     virtual void executeSSD(const string& command, const string& lba, const string& value) {
+        Logger::getInstance().log("executeSSD", "Application started");
+
         string fullCommand = command;
         
         if (command != "F")
