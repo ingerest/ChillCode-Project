@@ -22,7 +22,7 @@ bool Ssd::excuteCommand(string commandLine)
 	vector<string> cmdLine = splitString(commandLine);
 	string command = cmdLine[0];
 
-    auto pCommand = cmdFactory.getCommandObjct(cmdLine[0]);
+    auto pCommand = cmdFactory.getCommandObjct(command);
 
     if (pCommand == nullptr) return false;
 
@@ -51,7 +51,7 @@ bool Ssd::excuteCommand(string commandLine)
 		cmdBuffer.triggerCommandProcessing();
 	}
 
-	cmdBuffer.addCommandToBuffer(pCommand.get());
+	cmdBuffer.addCommandToBuffer(cmdLine);
     
     return true;
 

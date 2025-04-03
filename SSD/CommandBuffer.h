@@ -13,10 +13,11 @@ public:
 	bool checkCacheHit(Command* pCommand);
 	bool isFullCommandBuffer(void);
 	void triggerCommandProcessing(void);
-	void addCommandToBuffer(Command* pCommand);
+	void addCommandToBuffer(vector<string> cmdLine);
 private:
 	void getFileList(void);
 	void reorderCommandBuffer(void);
+	vector<string> splitString(const string& str, char delimiter);
 
 	vector<string> m_dafaultFileName
 		= { "1_empty", "2_empty", "3_empty" , "4_empty" , "5_empty" };
