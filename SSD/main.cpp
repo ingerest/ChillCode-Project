@@ -3,14 +3,12 @@
 #include <iostream>
 #define DEBUG_FLAG 1
 
-//int main(int argc, char** argv)
-int main()
+int main(int argc, char** argv)
 {
 #if DEBUG_FLAG == 0
 	::testing::InitGoogleMock();
 	return RUN_ALL_TESTS();
 #else
-#if 0 
 	std::string commandLine = "";
 	if (argc < 2) return 1;
 
@@ -18,12 +16,9 @@ int main()
 		commandLine += argv[i];
 		if (i < argc - 1) commandLine += " ";
 	}
-#endif
-	std::string line;
-	std::getline(std::cin, line);
 
 	Ssd ssd;
-	ssd.excuteCommand(line);
+	ssd.excuteCommand(commandLine);
 
 	return 0;
 #endif
