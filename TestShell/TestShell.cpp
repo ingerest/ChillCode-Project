@@ -31,7 +31,7 @@ public:
     virtual void executeSSD(const string& command, const string& lba, const string& value) {
         string fullCommand = command + " " + lba;
 
-        if (command == "W") {
+        if (command == "W" || command == "E") {
             fullCommand += " " + value;
         }
 
@@ -121,7 +121,7 @@ private:
             return handleEraseCommand(stream);
         }
         else if (command == "erase_range") {
-            //return handleEraseRangeCommand();
+            return handleEraseRangeCommand(stream);
         }
         // Test Script
         else if (command == "1_FullWriteAndReadCompare" || command == "1_") {
@@ -140,10 +140,11 @@ private:
 
     string handleEraseCommand(std::istringstream& stream)
     {
-        string startLba, sizeInString;
+        string startLba;
         stream >> startLba;
         validateLBA(startLba);
 
+        string sizeInString;
         stream >> sizeInString;
 
         int maxLba = 99;
@@ -165,20 +166,35 @@ private:
                 currentChunkSize = maxLba - lba +1;
             }
 
-            cout << "E " + to_string(lba) + " " + to_string(currentChunkSize) + "\n";
-            // executeSSD("E", to_string(lba), to_string(currentChunkSize));
+            executeSSD("E", to_string(lba), to_string(currentChunkSize));
+
+            string value = readFile();
+            if (value == "ERROR")
+            {
+                return "[Erase] Error";
+            }
 
             lba += currentChunkSize;
             size -= currentChunkSize;
         }
 
-        string value = readFile();
-        if (value == "ERROR")
-        {
-            return "[Erase] Error";
-        }
-
         return "[Erase] Done";
+    }
+
+    string handleEraseRangeCommand(std::istringstream& stream)
+    {
+        string startLba;
+        stream >> startLba;
+        validateLBA(startLba);
+
+        string endLba;
+        stream >> endLba;
+        validateLBA(endLba);
+
+        int size = stoi(endLba) - stoi(startLba) + 1;
+        std::istringstream eraseStream(startLba + " " + to_string(size));
+
+        return handleEraseCommand(eraseStream);
     }
 
     string handleWriteCommand(std::istringstream& stream, std::string& lbaString)
@@ -385,7 +401,7 @@ private:
         return oss.str();
     }
 
-    void validateLBA(const std::string& lba) {
+    void validateLBA(std::string lba) {
         int num = std::stoi(lba);
         if (num < 0 && num > 99)
         {
