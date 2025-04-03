@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -6,6 +6,10 @@
 #include <stdexcept>
 #include <fstream>
 #include <cstdlib>
+#include <windows.h>
+#include <shellapi.h>
+#include <io.h>  // _access 함수를 사용하려면 필요
+#include <filesystem>  // C++17 standard library
 
 #include "../SSD/ISsdApi.h"
 
@@ -24,13 +28,25 @@ public:
     }
 
     virtual bool executeSSD(const string& command, const string& lba, const string& value) {
-        string fullCommand = "../release/SSD.exe " + command + " " + lba;
+        string fullCommand = command + " " + lba;
+
         if (command == "W") {
             fullCommand += " " + value;
         }
 
-        int ret = std::system(fullCommand.c_str());
-        if (ret != 0 || isSsdError()) {
+        string exePath = "../Release";
+        SetCurrentDirectory(exePath.c_str());
+
+        ShellExecute(NULL,
+            "open",
+            "ssd.exe",
+            fullCommand.c_str(),
+            NULL,
+            SW_HIDE
+        );
+
+        
+        if (isSsdError()) {
             return false;
         }
 
@@ -39,26 +55,22 @@ public:
 
     virtual string readFile(int targetLba) {
         string filePath = "../Release/ssd_output.txt";
-
         ifstream file(filePath);
+
         if (!file.is_open()) {
             throw invalid_argument("");
         }
 
         string line;
-        while (getline(file, line)) {
-            stringstream ss(line);
-            int lba;
-            string value;
-            ss >> lba >> value;
-            if (lba == targetLba) {
-                file.close();
-                return value;
-            }
+        string value;
+
+        while (getline(file, line))
+        {
+            value = line.c_str();
         }
 
         file.close();
-        throw invalid_argument("");
+        return value;
     }
 
 private:
