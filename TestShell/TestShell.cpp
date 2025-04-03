@@ -50,18 +50,16 @@ public:
         string filePath = "../Release/ssd_output.txt";
         ifstream file(filePath);
 
-        if (!file.is_open()) {
-            throw invalid_argument("");
-        }
-
         string line;
         string value;
 
-        while (getline(file, line))
-        {
-            value = line.c_str();
+        if (file.is_open()) {
+            while (getline(file, line))
+            {
+                value = line.c_str();
+            }
+            file.close();
         }
-        file.close();
 
         return value;
     }
