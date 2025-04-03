@@ -14,7 +14,7 @@ public:
     MockTestShell()
     {
     }
-    MOCK_METHOD(string, readFile, (int lba), (override));
+    MOCK_METHOD(string, readFile, (), (override));
     MOCK_METHOD(bool, executeSSD, (const string& command, const string& lba, const string& value), (override));
 };
 
@@ -36,8 +36,7 @@ protected:
             .Times(1)
             .WillRepeatedly(Return(true));
 
-        TestShell testShell;
-        EXPECT_EQ(testShell.execute(input), expect);
+        EXPECT_EQ(mock.execute(input), expect);
     }
     void executeTest(std::string input, std::string value, std::string expect) {
         std::string SsdCmd = getSsdCmd(input);
@@ -55,7 +54,7 @@ protected:
             .Times(1)
             .WillRepeatedly(Return(true));
 
-        EXPECT_CALL(mock, readFile(lba))
+        EXPECT_CALL(mock, readFile())
             .Times(1)
             .WillRepeatedly(Return(mockReadResult));
 
@@ -187,10 +186,7 @@ TEST(TG_FULL, TestFullread00) {
     std::string expected = "0x00000000";
 
     TestShell testShell;
-    testShell.execute("fullread");
-
-    std::string str = buf.str();
-    // std::istringstream를 사용하여 문자열을 줄바꿈을 기준으로 처리
+    std::string str = testShell.execute("fullread");
     std::istringstream stream(str);
     std::string line;
 
@@ -198,7 +194,13 @@ TEST(TG_FULL, TestFullread00) {
     int cnt = 0;
     // 한 줄씩 읽어들여 처리
     while (std::getline(stream, line)) {
-        // 각 줄을 처리
+        std::ostringstream oss;
+        oss << std::setw(2) << std::setfill('0') << cnt;
+        string lba = oss.str();
+
+
+        std::string expected = "[Read] LBA " + lba + " : 0x00000000";
+
         if (line != expected) {
             same = false;
             break;

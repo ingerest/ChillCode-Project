@@ -53,7 +53,7 @@ public:
         return true;
     }
 
-    virtual string readFile(int targetLba) {
+    virtual string readFile() {
         string filePath = "../Release/ssd_output.txt";
         ifstream file(filePath);
 
@@ -68,8 +68,8 @@ public:
         {
             value = line.c_str();
         }
-
         file.close();
+
         return value;
     }
 
@@ -109,7 +109,7 @@ private:
 
         bool ret = executeSSD("R", lbaString, "");
         if (ret) {
-            string value = readFile(lba);
+            string value = readFile();
             return formatReadResult(lba, value);
         }
         return "[Read] Error";
@@ -142,13 +142,12 @@ private:
         int endLba = 99;
 
         for (int lba = startLba; lba <= endLba; ++lba) {
-            string lbaString = formatLBA(lba);
-            if (!executeSSD("W", lbaString, value)) {
+            if (executeSSD("W", to_string(lba), value) == false) {
                 throw invalid_argument("");
             }
         }
 
-        return "[Full Write] Done";
+        return "[Fullwrite] Done";
     }
 
     string handleFullReadCommand() {
@@ -157,13 +156,12 @@ private:
 
         string result;
         for (int lba = startLba; lba <= endLba; ++lba) {
-            string lbaString = formatLBA(lba);
-            if (!executeSSD("R", lbaString, "")) {
+            if (executeSSD("R", to_string(lba), "") == false) {
                 throw invalid_argument("");
             }
 
-            string value = readFile(lba);
-            result += formatReadResult(lba, value);
+            string value = readFile();
+            result += formatReadResult(lba, value) + "\n";
         }
 
         return result;
@@ -179,7 +177,7 @@ private:
         std::ostringstream oss;
         oss << "[Read] LBA "
             << std::setw(2) << std::setfill('0') << lba
-            << " : " << std::setw(8) << std::setfill('0') << value;
+            << " : " << value;
         return oss.str();
     }
 
@@ -218,7 +216,17 @@ private:
         return num;
     }
 
-    bool validateValue(const std::string& value) const {
+    bool validateLBA(const std::string& lba) {
+        try {
+            int num = std::stoi(lba);
+            return (num >= 0 && num <= 99);
+        }
+        catch (...) {
+            return false;
+        }
+    }
+
+    bool validateValue(const std::string& value) {
         if (value.length() != 10 || value.substr(0, 2) != "0x") {
             return false;
         }
@@ -231,8 +239,8 @@ private:
         }
 
         try {
-            unsigned int hexValue = std::stoul(value, nullptr, 16);  // Convert to hex
-            return (hexValue >= 0x00000000 && hexValue <= 0xFFFFFFFF);
+            unsigned int hexValue = std::stoul(value, nullptr, 16);
+            return (hexValue <= 0xFFFFFFFF);
         }
         catch (const std::invalid_argument& e) {
             return false;
@@ -240,6 +248,24 @@ private:
         catch (const std::out_of_range& e) {
             return false;
         }
+    }
+
+    bool validateInput(const std::string& input) {
+        std::istringstream iss(input);
+        std::string cmd, lba, value;
+
+        iss >> cmd >> lba;
+
+        if (cmd == "read") {
+            return validateLBA(lba) && iss.eof();
+        }
+
+        else if (cmd == "write") {
+            iss >> value;
+            return validateLBA(lba) && validateValue(value) && iss.eof();
+        }
+
+        return false;
     }
 
 };
