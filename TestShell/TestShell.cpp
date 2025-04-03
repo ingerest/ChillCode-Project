@@ -29,7 +29,12 @@ public:
     }
 
     virtual void executeSSD(const string& command, const string& lba, const string& value) {
-        string fullCommand = command + " " + lba;
+        string fullCommand = command;
+        
+        if (command != "F")
+        {
+            fullCommand += " " + lba;
+        }
 
         if (command == "W" || command == "E") {
             fullCommand += " " + value;
@@ -122,6 +127,17 @@ private:
         }
         else if (command == "erase_range") {
             return handleEraseRangeCommand(stream);
+        }
+        else if (command == "flush") {
+            executeSSD("F", "", "");
+            
+            string value = readFile();
+            if (value == "ERROR")
+            {
+                return "[Flush] Error";
+            }
+
+            return "[Flush] Done";
         }
         // Test Script
         else if (command == "1_FullWriteAndReadCompare" || command == "1_") {
