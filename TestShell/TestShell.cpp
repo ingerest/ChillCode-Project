@@ -29,6 +29,7 @@ public:
 
     virtual bool executeSSD(const string& command, const string& lba, const string& value) {
         string fullCommand = command + " " + lba;
+
         if (command == "W") {
             fullCommand += " " + value;
         }
@@ -41,7 +42,7 @@ public:
             "ssd.exe",
             fullCommand.c_str(),
             NULL,
-            SW_SHOW
+            SW_HIDE
         );
 
         
