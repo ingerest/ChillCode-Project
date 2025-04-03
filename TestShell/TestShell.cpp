@@ -53,7 +53,7 @@ public:
         return true;
     }
 
-    virtual string readFile(int targetLba) {
+    virtual string readFile() {
         string filePath = "../Release/ssd_output.txt";
         ifstream file(filePath);
 
@@ -68,8 +68,8 @@ public:
         {
             value = line.c_str();
         }
-
         file.close();
+
         return value;
     }
 
@@ -109,7 +109,7 @@ private:
 
         bool ret = executeSSD("R", lbaString, "");
         if (ret) {
-            string value = readFile(lba);
+            string value = readFile();
             return formatReadResult(lba, value);
         }
         return "[Read] Error";
@@ -160,7 +160,7 @@ private:
                 throw invalid_argument("");
             }
 
-            string value = readFile(lba);
+            string value = readFile();
             result += formatReadResult(lba, value) + "\n";
         }
 
@@ -177,7 +177,7 @@ private:
         std::ostringstream oss;
         oss << "[Read] LBA "
             << std::setw(2) << std::setfill('0') << lba
-            << " : " << std::setw(8) << std::setfill('0') << value;
+            << " : " << value;
         return oss.str();
     }
 
