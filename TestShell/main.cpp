@@ -15,7 +15,7 @@ public:
     {
     }
     MOCK_METHOD(string, readFile, (), (override));
-    MOCK_METHOD(bool, executeSSD, (const string& command, const string& lba, const string& value), (override));
+    MOCK_METHOD(void, executeSSD, (const string& command, const string& lba, const string& value), (override));
 };
 
 class CommandTest : public Test {
@@ -33,8 +33,8 @@ protected:
         MockTestShell mock;
 
         EXPECT_CALL(mock, executeSSD(SsdCmd, lba, value))
-            .Times(1)
-            .WillRepeatedly(Return(true));
+            .Times(1);
+        //.WillRepeatedly(Return(true));
 
         EXPECT_EQ(mock.execute(input), expect);
     }
@@ -51,8 +51,8 @@ protected:
         MockTestShell mock;
 
         EXPECT_CALL(mock, executeSSD(SsdCmd, lbaString, ""))
-            .Times(1)
-            .WillRepeatedly(Return(true));
+            .Times(1);
+        //.WillRepeatedly(Return(true));
 
         EXPECT_CALL(mock, readFile())
             .Times(1)
@@ -73,8 +73,8 @@ protected:
         MockTestShell mock;
 
         EXPECT_CALL(mock, executeSSD(SsdCmd, _, _))
-            .Times(100)
-            .WillRepeatedly(Return(true));
+            .Times(100);
+        //.WillRepeatedly(Return(true));
 
         EXPECT_EQ(mock.execute(input), expect);
     }

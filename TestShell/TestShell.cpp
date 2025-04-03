@@ -419,7 +419,7 @@ private:
 
     void validateLBA(std::string lba) {
         int num = std::stoi(lba);
-        if (num < 0 && num > 99)
+        if (num < 0 || num > 99)
         {
             throw invalid_argument("");
         }
