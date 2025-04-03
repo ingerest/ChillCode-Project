@@ -33,31 +33,8 @@ public:
             fullCommand += " " + value;
         }
 
-        string exePath1 = "../Release";
-        int isExist = _access(exePath1.c_str(), 0);
-
-        if (isExist == true)
-        {
-            cout << "Exist1\n";
-        }
-
-        char buffer[MAX_PATH];
-        if (GetCurrentDirectory(MAX_PATH, buffer)) {
-            std::cout << "Current working directory: " << buffer << std::endl;
-        }
-        else {
-            std::cerr << "Error getting current directory!" << std::endl;
-        }
-
-
-        SetCurrentDirectory(exePath1.c_str());
-
-        if (GetCurrentDirectory(MAX_PATH, buffer)) {
-            std::cout << "Changed working directory: " << buffer << std::endl;
-        }
-        else {
-            std::cerr << "Error getting current directory!" << std::endl;
-        }
+        string exePath = "../Release";
+        SetCurrentDirectory(exePath.c_str());
 
         ShellExecute(NULL,
             "open",
@@ -89,7 +66,6 @@ public:
         while (getline(file, line))
         {
             value = line.c_str();
-            cout << value;
         }
 
         file.close();
