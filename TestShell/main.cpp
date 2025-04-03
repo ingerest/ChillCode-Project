@@ -61,7 +61,7 @@ protected:
 
         EXPECT_EQ(mock.execute(input), expect);
     }
-    void readMockTest(std::string input, std::string expect, int lba, std::string mockReadResult) {
+    void readMockTest(std::string input, std::string expect, std::string mockReadResult) {
         std::string SsdCmd = getSsdCmd(input);
         if (SsdCmd != "R" || SsdCmd != "W") return; // EXPECT 처리 필요
         std::string lbaString = getLba(input);
@@ -141,18 +141,18 @@ TEST_F(CommandTest, TestDoNothing) {
 // read ////////////////////////////////////
 // TEST Case 1: "read 0" 명령어 처리 추가 
 TEST_F(CommandTest, TestReadCommand03) {
-    readMockTest("read 0", "R", "0", "[Read] LBA 00 : 0x00000000", 0, "0x00000000");
+    readMockTest("read 0", "[Read] LBA 00 : 0x00000000", "0x00000000");
 }
 
 // TEST Case 1: "read 3" 명령어 처리 추가
 TEST_F(CommandTest, TestReadCommand04) {
-    readMockTest("read 3", "R", "3", "[Read] LBA 03 : 0xAAAABBBB", 3, "0xAAAABBBB");
+    readMockTest("read 3", "[Read] LBA 03 : 0xAAAABBBB", "0xAAAABBBB");
 }
 
 // read ////////////////////////////////////
 // TEST Case 00: "write 3" 명령어 처리
 TEST_F(CommandTest, TestWriteCommand00) {
-    executeTest("write 3 0x12345678", "W", "3", "0x12345678", "[Write] Done");
+    executeTest("write 3 0x12345678", "0x12345678", "[Write] Done");
 }
 
 // exit ////////////////////////////////////
