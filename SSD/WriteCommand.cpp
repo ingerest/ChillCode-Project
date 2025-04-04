@@ -25,6 +25,18 @@ bool WriteCommand::excuteCommand(string commandLine, string OutputFile, string W
     return true;
 }
 
+bool WriteCommand::checkVaildParameter(string commandLine, string OutputFile, string WriteFile)
+{
+    if (false == parseCommandLine(commandLine)) return false;
+
+    m_commandParameter.OutputFile = OutputFile;
+    m_commandParameter.WriteFile = WriteFile;
+
+    if (false == checkVaildParameterAndStr2I()) return false;
+
+    return true;
+}
+
 void WriteCommand::writeLba(void)
 {
     ifstream fileIn(m_commandParameter.WriteFile);

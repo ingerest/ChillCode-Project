@@ -65,6 +65,18 @@ bool EraseCommand::excuteCommand(string commandLine, string OutputFile, string W
     return true;
 }
 
+bool EraseCommand::checkVaildParameter(string commandLine, string OutputFile, string WriteFile)
+{
+    if (false == parseCommandLine(commandLine)) return false;
+
+    m_commandParameter.OutputFile = OutputFile;
+    m_commandParameter.WriteFile = WriteFile;
+
+    if (false == checkVaildParameterAndStr2I()) return false;
+
+    return true;
+}
+
 void EraseCommand::eraseLba(void)
 {
     ifstream fileIn(m_commandParameter.WriteFile);

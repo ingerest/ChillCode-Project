@@ -18,13 +18,21 @@ vector<string>splitString(const string& str)
     return result;
 }
 
+bool Command::updateOutputFile(string data)
+{
+    ofstream ouputFile(m_commandParameter.OutputFile);
+    ouputFile << data;
+    ouputFile.close();
+    return false;
+ }
+
 bool Command::updateErrorMsg2TextFile(void)
 {
     ofstream ouputFile(m_commandParameter.OutputFile);
     ouputFile << "ERROR";
     ouputFile.close();
     return false;
- }
+}
 
 bool Command::checkVaildParameterAndStr2I(void)
 {

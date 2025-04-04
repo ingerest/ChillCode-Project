@@ -6,7 +6,7 @@
 const string SSD_NAND_PATH = "ssd_nand.txt";
 const string SSD_OUTPUT_PATH = "../Release/ssd_output.txt";
 
-CommandFactory cmdFactory;
+
 CommandBuffer cmdBuffer;
 
 Ssd::Ssd()
@@ -17,21 +17,42 @@ Ssd::Ssd()
 
 bool Ssd::excuteCommand(string commandLine)
 {
-    if (commandLine == "") false;
+    if (commandLine == "") return false;
 
 	vector<string> cmdLine = splitString(commandLine);
+	string command = cmdLine[0];
 
-    auto pCommand = cmdFactory.getCommandObjct(cmdLine[0]);
+	auto pCommand = CommandFactory::getInstance()->getCommandObjct(command);
 
     if (pCommand == nullptr) return false;
 
-
     // check command buffer : count/status
-    // execute or store
-    // result : command count 
-    // cmdBuffer.checkCommandBuffer();
-
+    cmdBuffer.checkCommandBuffer();
     
-    return pCommand->excuteCommand(commandLine, m_ssdOutputPath, m_ssdNandPath);
+	if (false == pCommand->checkVaildParameter(commandLine, m_ssdOutputPath, m_ssdNandPath))
+	{
+		return false;
+	}
+
+	if (command == "R")
+	{
+		if (false == cmdBuffer.checkCacheHit(pCommand.get()))
+		{
+			return pCommand->excuteCommand(commandLine, m_ssdOutputPath, m_ssdNandPath);
+		}
+		else
+		{
+			return true;
+		}
+	}
+	
+	if (cmdBuffer.isFullCommandBuffer() || (command == "F"))
+	{
+		cmdBuffer.triggerCommandProcessing();
+	}
+
+	if (command != "F") cmdBuffer.addCommandToBuffer(cmdLine);
+    
+    return true;
 
 }
