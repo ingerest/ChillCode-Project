@@ -224,6 +224,35 @@ int main()
 }
 
 #else
+
+#define _RUNNER 1
+#ifdef _RUNNER
+
+typedef int (*RunTestFunc)(const char*, TestShell*);
+
+int main() {
+    HMODULE hModule = LoadLibraryA("..\\x64\\Release\\TestScript.dll");
+    //HMODULE hModule = LoadLibraryA("C:\\Users\\User\\ChillCode-Project\\x64\\Release\\TestScript.dll");
+    if (!hModule) {
+        std::cerr << "DLL 로딩 실패" << std::endl;
+        return 1;
+    }
+
+    RunTestFunc runTest = (RunTestFunc)GetProcAddress(hModule, "runTest");
+    if (!runTest) {
+        std::cerr << "함수 찾기 실패" << std::endl;
+        FreeLibrary(hModule);
+        return 1;
+    }
+
+    TestShell shell;  // 가짜 or 진짜 객체
+    int result = runTest("4_EraseAndWriteAging", &shell);
+    std::cout << "runTest result: " << result << std::endl;
+
+    FreeLibrary(hModule);
+    return 0;
+}
+#else
 int main()
 {
     TestShell testShell;
@@ -244,4 +273,11 @@ int main()
         }
     }
 }
+
+
+
+
+#endif
+
+
 #endif
