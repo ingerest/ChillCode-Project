@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iomanip>
 #include <regex>
+#include "../TestShell/TestShell.cpp"
 
 std::string generateRandomValue() {
     std::random_device rd;
@@ -18,11 +19,26 @@ std::string generateRandomValue() {
     return ss.str();
 }
 
-std::string extractCommandKey(const std::string& fullCommand) {
-    std::regex commandRegex(R"(^(\d+))");
-    std::smatch match;
-    if (std::regex_search(fullCommand, match, commandRegex)) {
-        return match.str(1);
-    }
-    return "";
+std::string makeReadResult(int lba, std::string& value) {
+    std::ostringstream oss;
+    oss << std::setw(2) << std::setfill('0') << lba;
+    return "[Read] LBA " + oss.str() + " : " + value;
+}
+
+bool executeWriteCommand(TestShell* shell, int lba, std::string& value)
+{
+    std::string writeCommand = "write " + std::to_string(lba) + " " + value;
+
+    std::string result = shell->execute(writeCommand);
+    if (result == "[Write] Error")
+        return false;
+
+    return true;
+}
+
+std::string executeReadCommand(TestShell* shell, int lba)
+{
+    std::string readCommand = "read " + std::to_string(lba);
+    
+    return shell->execute(readCommand);
 }

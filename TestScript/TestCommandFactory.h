@@ -1,7 +1,4 @@
 #pragma once
-#include <string>
-#include <map>
-#include <memory>
 #include "ITestCommand.h"
 
 class TestCommandFactory {

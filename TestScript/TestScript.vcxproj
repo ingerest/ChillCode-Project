@@ -142,18 +142,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FullWriteAndReadCompareCommand.cpp" />
+    <ClCompile Include="PartialLBAWrite.cpp" />
     <ClCompile Include="TestCommandFactory.cpp" />
     <ClCompile Include="TestSuite.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TestUtils.cpp" />
+    <ClCompile Include="WriteReadAging.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FullWriteAndReadCompareCommand.h" />
     <ClInclude Include="ITestCommand.h" />
+    <ClInclude Include="PartialLBAWrite.h" />
     <ClInclude Include="TestCommandFactory.h" />
     <ClInclude Include="TestUtils.h" />
+    <ClInclude Include="WriteReadAging.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
