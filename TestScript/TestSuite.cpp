@@ -2,7 +2,7 @@
 #include "TestCommandFactory.h"
 #include <chrono>
 
-extern "C" __declspec(dllexport)
+extern "C" __declspec(dllexport) int runTest(const char* command, TestShell* shell);
 int runTest(const char* command, TestShell* shell) {
 
     if (command == nullptr || shell == nullptr)
