@@ -2,6 +2,7 @@
 #include "FullWriteAndReadCompareCommand.h"
 #include "PartialLBAWrite.h"
 #include "WriteReadAging.h"
+#include "EraseAndWriteAging.h"
 #include <unordered_map>
 #include <functional>
 
@@ -9,7 +10,8 @@
 static const std::unordered_map<std::string, std::function<std::unique_ptr<ITestCommand>()>> commandMap = {
     {"1", []() { return std::make_unique<FullWriteAndReadCompareCommand>(); }},
     {"2", []() { return std::make_unique<PartialLBAWrite>(); }},
-    {"3", []() { return std::make_unique<WriteReadAging>(); }}
+    {"3", []() { return std::make_unique<WriteReadAging>(); }},
+    {"4", []() { return std::make_unique<EraseAndWriteAging>(); }}
 };
 
 std::string TestCommandFactory::extractCommandKey(const std::string& commandName) {
