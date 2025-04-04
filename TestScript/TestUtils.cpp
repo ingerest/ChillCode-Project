@@ -42,3 +42,17 @@ std::string executeReadCommand(TestShell* shell, int lba)
     
     return shell->execute(readCommand);
 }
+
+std::string executeEraseCommand(TestShell* shell, int lba, int size)
+{
+    std::string eraseCommand = "erase " + std::to_string(lba) + " " + std::to_string(size);
+
+    return shell->execute(eraseCommand);
+}
+
+std::string executeEraseRangeCommand(TestShell* shell, int startLba, int endLba)
+{
+    std::string eraseRangeCommand = "erase_range " + std::to_string(startLba) + " " + std::to_string(endLba);
+
+    return shell->execute(eraseRangeCommand);
+}

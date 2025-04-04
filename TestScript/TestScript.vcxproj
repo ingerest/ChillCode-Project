@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="EraseAndWriteAging.cpp" />
     <ClCompile Include="FullWriteAndReadCompareCommand.cpp" />
     <ClCompile Include="PartialLBAWrite.cpp" />
     <ClCompile Include="TestCommandFactory.cpp" />
@@ -152,6 +153,7 @@
     <ClCompile Include="WriteReadAging.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="EraseAndWriteAging.h" />
     <ClInclude Include="FullWriteAndReadCompareCommand.h" />
     <ClInclude Include="ITestCommand.h" />
     <ClInclude Include="PartialLBAWrite.h" />
