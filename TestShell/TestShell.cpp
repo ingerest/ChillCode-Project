@@ -22,16 +22,18 @@ public:
 
     string execute(const string& userInput) {
         try {
+            Logger::getInstance().log("TestShell::execute", "Process Command - " + userInput);
             string output = processCommand(userInput);
             return output;
         }
         catch (const exception& e) {
+            Logger::getInstance().log("TestShell::execute", "Exception!");
             return e.what();
         }
     }
 
     virtual void executeSSD(const string& command, const string& lba, const string& value) {
-        Logger::getInstance().log("executeSSD", "Application started");
+        Logger::getInstance().log("TestShell::executeSSD", "Command :" + command + "param1 :" + lba + "param2 :" + value);
 
         string fullCommand = command;
 
@@ -49,8 +51,10 @@ public:
 
         if (runCommandAndWait("ssd.exe", fullCommand) == false)
         {
-            throw invalid_argument("INVALID COMMAND");
+            Logger::getInstance().log("TestShell::executeSSD", "runCommandAndWait Failed.");
+            throw invalid_argument("");
         }
+        Logger::getInstance().log("TestShell::executeSSD", "Success");
     }
 
     virtual string readFile() {
@@ -68,6 +72,7 @@ public:
             file.close();
         }
 
+        Logger::getInstance().log("TestShell::readFile", "Success - " + value);
         return value;
     }
 
@@ -76,6 +81,8 @@ private:
         string command;
         istringstream stream(userInput);
         stream >> command;
+
+        Logger::getInstance().log("TestShell::processCommand", "Start - " + userInput);
 
         if (command == "raed")
         {
@@ -121,12 +128,18 @@ private:
         }
         else {
             int res = handleRunnerCommand(command);
-            if (res == -1) throw invalid_argument("INVALID COMMAND");
+            if (res == -1)
+            {
+                Logger::getInstance().log("TestShell::processCommand", "Exception");
+                throw invalid_argument("INVALID COMMAND");
+            }
         }
     }
 
     const std::string& handleFlushCommand()
     {
+        Logger::getInstance().log("TestShell::handleFlushCommand", "Start");
+
         executeSSD("F", "", "");
 
         string value = readFile();
@@ -140,6 +153,8 @@ private:
 
     string handleEraseCommand(std::istringstream& stream)
     {
+        Logger::getInstance().log("TestShell::handleEraseCommand", "Start");
+
         string startLba;
         stream >> startLba;
         validateLBA(startLba);
@@ -191,6 +206,8 @@ private:
         stream >> endLba;
         validateLBA(endLba);
 
+        Logger::getInstance().log("TestShell::handleEraseRangeCommand", "StartLBA :" + startLba + "EndLBA :" + endLba);
+
         int size = stoi(endLba) - stoi(startLba) + 1;
         std::istringstream eraseStream(startLba + " " + to_string(size));
 
@@ -206,6 +223,8 @@ private:
         string writeValue;
         stream >> writeValue;
         validateValue(writeValue);
+
+        Logger::getInstance().log("TestShell::handleWriteCommand", "LBA :" + lbaString + "EndLBA :" + writeValue);
 
         executeSSD("W", lbaString, writeValue);
 
@@ -224,6 +243,8 @@ private:
         stream >> lbaString;
         validateLBA(lbaString);
 
+        Logger::getInstance().log("TestShell::handleReadCommand", "LBA :" + lbaString);
+
         executeSSD("R", lbaString, "");
 
         string readOutput = readFile();
@@ -237,6 +258,7 @@ private:
     }
 
     string getHelpInfo() const {
+        Logger::getInstance().log("TestShell::getHelpInfo", "Print Help");
         return "Team Name : ChillCode\n Member : Oh, Seo, Kang, Lim\n";
     }
 
@@ -247,6 +269,8 @@ private:
 
         int startLba = 0;
         int endLba = 99;
+
+        Logger::getInstance().log("TestShell::getHelpInfo", "Print Help");
 
         for (int lba = startLba; lba <= endLba; ++lba) {
             executeSSD("W", to_string(lba), writeValue);
@@ -263,6 +287,8 @@ private:
     string handleFullReadCommand() {
         int startLba = 0;
         int endLba = 99;
+
+        Logger::getInstance().log("TestShell::handleFullReadCommand", "Start");
 
         string result;
         for (int lba = startLba; lba <= endLba; ++lba) {
