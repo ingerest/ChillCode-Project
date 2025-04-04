@@ -77,7 +77,7 @@ private:
         istringstream stream(userInput);
         stream >> command;
 
-        if (command == "raed")
+        if (command == "read")
         {
             return handleReadCommand(stream);
         }
@@ -475,13 +475,13 @@ private:
     int handleRunnerCommand(string command) {
         HMODULE hModule = LoadLibraryA("TestScript.dll");
         if (!hModule) {
-            std::cerr << "DLL 로딩 실패" << std::endl;  // ToDo : Loger로 처리 필요
+            //std::cerr << "DLL 로딩 실패" << std::endl;  // ToDo : Loger로 처리 필요
             return -1;
         }
 
         RunTestFunc runTest = (RunTestFunc)GetProcAddress(hModule, "runTest");
         if (!runTest) {
-            std::cerr << "함수 찾기 실패" << std::endl;   // ToDo : Loger로 처리 필요
+            //std::cerr << "함수 찾기 실패" << std::endl;   // ToDo : Loger로 처리 필요
             FreeLibrary(hModule);
             return -1;
         }
