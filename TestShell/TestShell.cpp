@@ -18,6 +18,7 @@ using namespace std;
 
 class TestShell {
 public:
+    typedef int (*RunTestFunc)(const char*, TestShell*);
 
     string execute(const string& userInput) {
         try {
@@ -436,8 +437,6 @@ private:
         return "PASS";
     }
 
-    typedef int (*RunTestFunc)(const char*, TestShell*);
-
     int handleRunnerCommand(string command) {
         HMODULE hModule = LoadLibraryA("TestScript.dll");
         if (!hModule) {
@@ -452,7 +451,7 @@ private:
             return -1;
         }
 
-        TestShell shell;  // 가짜 or 진짜 객체
+        TestShell shell;
         int result = runTest(command.c_str(), &shell);
         if (result == -1) return -1;    // "INVALID COMMAND"
         string Result = (result == 1) ? "PASS" : "FAIL";
@@ -462,14 +461,6 @@ private:
         return 0;
 
     }
-
-
-
-
-
-
-
-
 
     string formatReadResult(const string& lba, const string& value) const {
         std::ostringstream oss;

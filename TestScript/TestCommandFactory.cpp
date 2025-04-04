@@ -8,10 +8,10 @@
 
 // 커맨드 등록 테이블
 static const std::unordered_map<std::string, std::function<std::unique_ptr<ITestCommand>()>> commandMap = {
-    {"5", []() { return std::make_unique<FullWriteAndReadCompareCommand>(); }},
-    {"6", []() { return std::make_unique<PartialLBAWrite>(); }},
-    {"7", []() { return std::make_unique<WriteReadAging>(); }},
-    {"8", []() { return std::make_unique<EraseAndWriteAging>(); }}
+    {"1", []() { return std::make_unique<FullWriteAndReadCompareCommand>(); }},
+    {"2", []() { return std::make_unique<PartialLBAWrite>(); }},
+    {"3", []() { return std::make_unique<WriteReadAging>(); }},
+    {"4", []() { return std::make_unique<EraseAndWriteAging>(); }}
 };
 
 std::string TestCommandFactory::extractCommandKey(const std::string& commandName) {
