@@ -8,8 +8,8 @@
 #include <cstdlib>
 #include <windows.h>
 #include <shellapi.h>
-#include <io.h>  // _access 함수를 사용하려면 필요
-#include <filesystem>  // C++17 standard library
+#include <io.h>
+#include <filesystem>
 #include <random>
 
 #include "Logger.cpp"
@@ -53,29 +53,6 @@ public:
         }
     }
 
-    bool runCommandAndWait(const string& exe, const string& args) {
-        string fullPath = exe + " " + args;
-
-        STARTUPINFOA si = { sizeof(si) };
-        PROCESS_INFORMATION pi;
-
-        if (!CreateProcessA(
-            NULL,
-            const_cast<char*>(fullPath.c_str()),
-            NULL, NULL, FALSE,
-            0, NULL, NULL,
-            &si, &pi)) {
-            return false;
-        }
-
-        WaitForSingleObject(pi.hProcess, INFINITE);
-
-        CloseHandle(pi.hProcess);
-        CloseHandle(pi.hThread);
-        return true;
-    }
-
-
     virtual string readFile() {
         string filePath = "../Release/ssd_output.txt";
         ifstream file(filePath);
@@ -100,19 +77,13 @@ private:
         istringstream stream(userInput);
         stream >> command;
 
-        if (command == "read" || command == "write") {
-            string lbaString;
-            stream >> lbaString;
-            validateLBA(lbaString);
-
-            if (command == "read")
-            {
-                return handleReadCommand(lbaString);
-            }
-            else
-            {
-                return handleWriteCommand(stream, lbaString);
-            }
+        if (command == "raed")
+        {
+            return handleReadCommand(stream);
+        }
+        else if (command == "write")
+        {
+            return handleWriteCommand(stream);
         }
         else if (command == "exit") {
             return "[exit] Done";
@@ -133,15 +104,7 @@ private:
             return handleEraseRangeCommand(stream);
         }
         else if (command == "flush") {
-            executeSSD("F", "", "");
-
-            string value = readFile();
-            if (value == "ERROR")
-            {
-                return "[Flush] Error";
-            }
-
-            return "[Flush] Done";
+            return handleFlushCommand();
         }
         // Test Script
         else if (command == "1_FullWriteAndReadCompare" || command == "1_") {
@@ -160,6 +123,19 @@ private:
             int res = handleRunnerCommand(command);
             if (res == -1) throw invalid_argument("INVALID COMMAND");
         }
+    }
+
+    const std::string& handleFlushCommand()
+    {
+        executeSSD("F", "", "");
+
+        string value = readFile();
+        if (value == "ERROR")
+        {
+            return "[Flush] Error";
+        }
+
+        return "[Flush] Done";
     }
 
     string handleEraseCommand(std::istringstream& stream)
@@ -221,8 +197,12 @@ private:
         return handleEraseCommand(eraseStream);
     }
 
-    string handleWriteCommand(std::istringstream& stream, std::string& lbaString)
+    string handleWriteCommand(std::istringstream& stream)
     {
+        string lbaString;
+        stream >> lbaString;
+        validateLBA(lbaString);
+
         string writeValue;
         stream >> writeValue;
         validateValue(writeValue);
@@ -238,8 +218,12 @@ private:
         return "[Write] Done";
     }
 
-    string handleReadCommand(std::string& lbaString)
+    string handleReadCommand(std::istringstream& stream)
     {
+        string lbaString;
+        stream >> lbaString;
+        validateLBA(lbaString);
+
         executeSSD("R", lbaString, "");
 
         string readOutput = readFile();
@@ -282,11 +266,68 @@ private:
 
         string result;
         for (int lba = startLba; lba <= endLba; ++lba) {
-            string lbaString = to_string(lba);
-            result += handleReadCommand(lbaString) + "\n";
+            std::istringstream lbaStream(std::to_string(lba));
+            result += handleReadCommand(lbaStream) + "\n";
         }
 
         return result;
+    }
+
+    bool runCommandAndWait(const string& exe, const string& args) {
+        string fullPath = exe + " " + args;
+
+        STARTUPINFOA si = { sizeof(si) };
+        PROCESS_INFORMATION pi;
+
+        if (!CreateProcessA(
+            NULL,
+            const_cast<char*>(fullPath.c_str()),
+            NULL, NULL, FALSE,
+            0, NULL, NULL,
+            &si, &pi)) {
+            return false;
+        }
+
+        WaitForSingleObject(pi.hProcess, INFINITE);
+
+        CloseHandle(pi.hProcess);
+        CloseHandle(pi.hThread);
+        return true;
+    }
+
+    string formatReadResult(const string& lba, const string& value) const {
+        std::ostringstream oss;
+        oss << "[Read] LBA "
+            << std::setw(2) << std::setfill('0') << lba
+            << " : " << value;
+        return oss.str();
+    }
+
+    void validateLBA(std::string lba) {
+        int num = std::stoi(lba);
+        if (num < 0 || num > 99)
+        {
+            throw invalid_argument("");
+        }
+    }
+
+    void validateValue(const std::string& value) {
+        if (value.length() != 10 || value.substr(0, 2) != "0x") {
+            throw invalid_argument("");
+        }
+
+        for (size_t i = 2; i < value.length(); ++i) {
+            char c = value[i];
+            if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
+                throw invalid_argument("");
+            }
+        }
+
+        unsigned int hexValue = std::stoul(value, nullptr, 16);
+        if (hexValue > 0xFFFFFFFF)
+        {
+            throw invalid_argument("");
+        }
     }
 
     //////////////// SCRIPT ////////////////////////////
@@ -327,11 +368,8 @@ private:
         istringstream stream(input);
         string command;
         stream >> command;
-        string lbaString;
-        stream >> lbaString;
-        validateLBA(lbaString);
 
-        string result = handleWriteCommand(stream, lbaString);
+        string result = handleWriteCommand(stream);
 
         if (result == "[Write] Done") return true;
         return false;
@@ -342,11 +380,8 @@ private:
         istringstream stream(input);
         string command;
         stream >> command;
-        string lbaString;
-        stream >> lbaString;
-        validateLBA(lbaString);
 
-        string result = handleReadCommand(lbaString).substr(16, 26);
+        string result = handleReadCommand(stream).substr(16, 26);
 
         if (result == expected) return true;
         return false;
@@ -460,40 +495,5 @@ private:
         FreeLibrary(hModule);
         return 0;
 
-    }
-
-    string formatReadResult(const string& lba, const string& value) const {
-        std::ostringstream oss;
-        oss << "[Read] LBA "
-            << std::setw(2) << std::setfill('0') << lba
-            << " : " << value;
-        return oss.str();
-    }
-
-    void validateLBA(std::string lba) {
-        int num = std::stoi(lba);
-        if (num < 0 || num > 99)
-        {
-            throw invalid_argument("");
-        }
-    }
-
-    void validateValue(const std::string& value) {
-        if (value.length() != 10 || value.substr(0, 2) != "0x") {
-            throw invalid_argument("");
-        }
-
-        for (size_t i = 2; i < value.length(); ++i) {
-            char c = value[i];
-            if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
-                throw invalid_argument("");
-            }
-        }
-
-        unsigned int hexValue = std::stoul(value, nullptr, 16);
-        if (hexValue > 0xFFFFFFFF)
-        {
-            throw invalid_argument("");
-        }
     }
 };
