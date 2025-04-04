@@ -1,4 +1,4 @@
-#include "CommandBuffer.h"
+ï»¿#include "CommandBuffer.h"
 #include "Command.h"
 #include "CommandFactory.h"
 #include <filesystem>
@@ -8,7 +8,7 @@ using namespace std;
 
 namespace fs = std::filesystem;
 
-const string COMMAND_BUFFER_PATH = "./buffer";
+const string COMMAND_BUFFER_PATH = "./buffer/";
 
 CommandBuffer::CommandBuffer()
 {
@@ -31,7 +31,7 @@ void CommandBuffer::getFileList(void)
 			m_currentFileName.push_back(fileName);
 			if (fileName.erase(0,1) != "_empty")
 			{
-				vector<string>vCommand = splitString(m_currentFileName[m_validCommandCount], '_');
+				vector<string>vCommand = splitString(fileName, '_');
 				
 				if (vCommand[1] == "E")
 				{
@@ -50,6 +50,9 @@ void CommandBuffer::getFileList(void)
 			}
 		}
 	}
+
+	sort(m_currentFileName.begin(), m_currentFileName.end());
+
 }
 
 void CommandBuffer::reorderCommandBufferAndStore(void)
@@ -67,14 +70,16 @@ void CommandBuffer::reorderCommandBufferAndStore(void)
 	{
 		uint32_t nLba = stoi(vCommand[1]);
 		if (m_writeBitmap.getBit(nLba) == 1)
-		{		
-			for (uint32_t index = 0; index < m_validCommandCount -1; index++)
+		{	
+			uint32_t validCommandCount = m_validCommandCount - 1;
+			for (uint32_t index = 0; index < validCommandCount; index++)
 			{
-				vector<string>targetCommand = splitString(m_currentFileName[index], '_');
+				vector<string>targetCommand = splitString(changedFileName[index], '_');
 				if ((targetCommand[1] == "W") && (targetCommand[2] == vCommand[1]))
 				{
 					changedFileName.erase(changedFileName.begin() + index);
-					changedFileName.insert(changedFileName.begin() + m_validCommandCount - 1, m_dafaultFileName[m_validCommandCount - 1]);
+					changedFileName.insert(changedFileName.begin() + (m_validCommandCount - 1), m_dafaultFileName[m_validCommandCount - 1]);
+					m_validCommandCount--;
 					break;
 				}
 			}
@@ -92,24 +97,25 @@ void CommandBuffer::reorderCommandBufferAndStore(void)
 		{
 			if (m_writeBitmap.getBit(indexLba) == 1)
 			{
-				for (uint32_t index = 0; index < m_validCommandCount - 1; index++)
+				uint32_t validCommandCount = m_validCommandCount - 1;
+				for (uint32_t index = 0; index < validCommandCount; index++)
 				{
-					vector<string>targetCommand = splitString(m_currentFileName[index], '_');
-					if ((targetCommand[1] == "W") && (targetCommand[2] == vCommand[1]))
+					vector<string>targetCommand = splitString(changedFileName[index], '_');
+					if ((targetCommand[1] == "W") && (targetCommand[2] == to_string(indexLba)))
 					{
 						changedFileName.erase(changedFileName.begin() + index);
-						changedFileName.insert(changedFileName.begin() + m_validCommandCount - 1, m_dafaultFileName[m_validCommandCount - 1]);
+						changedFileName.insert(changedFileName.begin() + (m_validCommandCount - 1), m_dafaultFileName[m_validCommandCount - 1]);
+						m_validCommandCount--;
 						break;
 					}
 				}
-				break;
 			}
 		}
 
 
 		for (int32_t index = m_validCommandCount - 2 ; index >=  0; index--)
 		{
-			vector<string>targetCommand = splitString(m_currentFileName[index], '_');
+			vector<string>targetCommand = splitString(changedFileName[index], '_');
 			if (targetCommand[1] == "E")
 			{
 				uint32_t nTagetStartLba = stoi(targetCommand[2]);
@@ -122,12 +128,12 @@ void CommandBuffer::reorderCommandBufferAndStore(void)
 					{
 						uint32_t	nNewStartLba = (nTagetStartLba > nStartLba) ? nStartLba : nTagetStartLba;
 						uint32_t nNewLenth = nTargetLenth + nLength;
-						changedFileName.erase(changedFileName.begin() + m_validCommandCount - 1);
-						changedFileName.insert(changedFileName.begin() + m_validCommandCount - 1, m_dafaultFileName[m_validCommandCount - 1]);
+						changedFileName.erase(changedFileName.begin() + (m_validCommandCount - 1));
+						changedFileName.insert(changedFileName.begin() + (m_validCommandCount - 1), m_dafaultFileName[m_validCommandCount - 1]);
 						changedFileName.erase(changedFileName.begin() + index);
 
-						string strNewFile = to_string(m_validCommandCount - 2) + "_" + targetCommand[1] + "_" + to_string(nNewStartLba) + "_" + to_string(nNewLenth);
-						changedFileName.insert(changedFileName.begin() + m_validCommandCount - 2, strNewFile);
+						string strNewFile = to_string(m_validCommandCount - 1) + "_" + targetCommand[1] + "_" + to_string(nNewStartLba) + "_" + to_string(nNewLenth);
+						changedFileName.insert(changedFileName.begin() + (m_validCommandCount - 2), strNewFile);
 						m_validCommandCount--;
 						break;
 					}
@@ -142,14 +148,14 @@ void CommandBuffer::reorderCommandBufferAndStore(void)
 					uint32_t	nNewStartLba = (nTagetStartLba > nStartLba) ? nStartLba : nTagetStartLba;
 					uint32_t nNewEndLba = (nTargetEndLba > nEndLba) ? nTargetEndLba : nEndLba;
 					
-					if ((nNewEndLba - nNewEndLba + 1) <= 10)
+					if ((nNewEndLba - nNewStartLba + 1) <= 10)
 					{
-						uint32_t nNewLenth = nTargetLenth + nLength;
+						uint32_t nNewLenth = (nNewEndLba - nNewStartLba + 1);
 						changedFileName.erase(changedFileName.begin() + m_validCommandCount - 1);
 						changedFileName.insert(changedFileName.begin() + m_validCommandCount - 1, m_dafaultFileName[m_validCommandCount - 1]);
 						changedFileName.erase(changedFileName.begin() + index);
 
-						string strNewFile = to_string(m_validCommandCount - 2) + "_" + targetCommand[1] + "_" + to_string(nNewStartLba) + "_" + to_string(nNewLenth);
+						string strNewFile = to_string(m_validCommandCount - 1) + "_" + targetCommand[1] + "_" + to_string(nNewStartLba) + "_" + to_string(nNewLenth);
 						changedFileName.insert(changedFileName.begin() + m_validCommandCount - 2, strNewFile);
 						m_validCommandCount--; 
 						break;
@@ -164,21 +170,22 @@ void CommandBuffer::reorderCommandBufferAndStore(void)
 	{
 		vector<string>targetCommand = splitString(changedFileName[index], '_');
 
-		if (index != stoi(targetCommand[0]))
+		if ((index + 1) != stoi(targetCommand[0]))
 		{
 			changedFileName[index].erase(0, 1);
-			changedFileName[index] = to_string(index) + changedFileName[index];
+			changedFileName[index] = to_string(index + 1) + changedFileName[index];
 		}
 	}
 
-	for (uint32_t index = 0; index < m_validCommandCount; index++)
+	for (uint32_t index = 0; index < MAX_COMMAND_BUFFER_SIZE; index++)
 	{
-		if (!fs::exists(m_currentFileName[index])) 
+		if (!fs::exists(COMMAND_BUFFER_PATH + m_currentFileName[index])) 
 		{
-			cerr << "¿À·ù: º¯°æÇÏ·Á´Â ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.\n";
+			cerr << "ì˜¤ë¥˜: ë³€ê²½í•˜ë ¤ëŠ” íŒŒì¼ì´ ì¡´ìž¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.\n";
 			return;
 		}
-		fs::rename(m_currentFileName[index], changedFileName[index]);
+		if (m_currentFileName[index] != changedFileName[index])
+			fs::rename(COMMAND_BUFFER_PATH + m_currentFileName[index], COMMAND_BUFFER_PATH + changedFileName[index]);
 	}
 
 }
@@ -187,14 +194,14 @@ void CommandBuffer::resetCommandBuffer(void)
 {
 	for (uint32_t index = 0; index < m_validCommandCount; index++)
 	{
-		if (!fs::exists(m_currentFileName[index]))
+		if (!fs::exists(COMMAND_BUFFER_PATH + m_currentFileName[index]))
 		{
-			cerr << "¿À·ù: º¯°æÇÏ·Á´Â ÆÄÀÏÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.\n";
+			cerr << "ì˜¤ë¥˜: ë³€ê²½í•˜ë ¤ëŠ” íŒŒì¼ì´ ì¡´ìž¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.\n";
 			return;
 		}
-		fs::rename(m_currentFileName[index], m_dafaultFileName[index]);
+		fs::rename(COMMAND_BUFFER_PATH + m_currentFileName[index], COMMAND_BUFFER_PATH + m_dafaultFileName[index]);
 	}
-
+	m_currentFileName = m_dafaultFileName;
 	m_validCommandCount = 0;
 }
 
@@ -221,9 +228,9 @@ bool CommandBuffer::checkCacheHit(Command* pCommand)
 		{
 			vector<string>vCommand = splitString(m_currentFileName[index], '_');
 
-			if ((vCommand[1] == "W") && (vCommand[4] == string("0x" + to_string(nLBA))))
+			if ((vCommand[1] == "W") && (vCommand[2] == to_string(nLBA)))
 			{
-				sData = vCommand[4];
+				sData = vCommand[3];
 				break;
 			}
 		}
@@ -260,9 +267,14 @@ void CommandBuffer::triggerCommandProcessing(void)
 
 void CommandBuffer::addCommandToBuffer(vector<string> cmdLine)
 {
+	string oldFileName = m_currentFileName[m_validCommandCount];
+	
 	m_currentFileName[m_validCommandCount] 
-		= to_string(m_validCommandCount) + "_" + cmdLine[0] + "_" + cmdLine[1] + "_" + cmdLine[2];
+		= to_string(m_validCommandCount + 1) + "_" + cmdLine[0] + "_" + cmdLine[1] + "_" + cmdLine[2];
+	fs::rename(COMMAND_BUFFER_PATH + oldFileName, COMMAND_BUFFER_PATH + m_currentFileName[m_validCommandCount]);
+
 	m_validCommandCount++;
+
 	reorderCommandBufferAndStore();
 }
 

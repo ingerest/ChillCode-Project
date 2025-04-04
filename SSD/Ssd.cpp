@@ -51,7 +51,7 @@ bool Ssd::excuteCommand(string commandLine)
 		cmdBuffer.triggerCommandProcessing();
 	}
 
-	cmdBuffer.addCommandToBuffer(cmdLine);
+	if (command != "F") cmdBuffer.addCommandToBuffer(cmdLine);
     
     return true;
 
