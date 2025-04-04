@@ -452,8 +452,9 @@ private:
             return -1;
         }
 
-        TestShell shell;  // 가짜 or 진짜 객체
-        int result = runTest(command.c_str(), &shell);
+        //TestShell shell;  // 가짜 or 진짜 객체
+        //int result = runTest(command.c_str(), &shell);
+        int result = runTest(command.c_str(), this);
         if (result == -1) return -1;    // "INVALID COMMAND"
         string Result = (result == 1) ? "PASS" : "FAIL";
         std::cout << Result;
