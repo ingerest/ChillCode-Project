@@ -7,7 +7,6 @@
 #include <iomanip>
 #include <ctime>
 #include <filesystem>
-#include <chrono>
 
 class Logger {
 public:
@@ -19,20 +18,18 @@ public:
     void log(const std::string& function, const std::string& message) {
         std::string timestamp = getTimestamp();
         std::string formattedMessage = formatMessage(function, message);
-        
+
         manageFileSize();
-        
+
         std::ofstream logFile(logFileName, std::ios::app);
         if (!logFile.is_open()) {
             return;
         }
 
         logFile << timestamp << " " << formattedMessage << std::endl;
-        logFile.close();
     }
 
-    void manageFileSize()
-    {
+    void manageFileSize() {
         std::ifstream infile(logFileName, std::ios::binary);
         if (!infile.is_open()) {
             return;
@@ -42,13 +39,15 @@ public:
         std::streampos fileSize = infile.tellg();
         infile.close();
 
-        if (fileSize >= 1024 * 10) {
+        if (fileSize >= maxLogFileSize) {
             rotateLogFile();
         }
     }
 
 private:
-    std::string logFileName = "../TestShell/latest.log";
+    const std::string logFileName = "../TestShell/latest.log";
+    const std::string logDir = "../TestShell/";
+    const std::size_t maxLogFileSize = 10 * 1024; // 10KB
 
     Logger() {
         initializeLatestLogFile();
@@ -57,13 +56,8 @@ private:
     Logger(const Logger&) = delete;
     Logger& operator=(const Logger&) = delete;
 
-    void initializeLatestLogFile()
-    {
+    void initializeLatestLogFile() {
         std::ofstream file(logFileName, std::ios::trunc);
-        if (!file.is_open()) {
-            return;
-        }
-        file.close();
     }
 
     std::string getTimestamp() {
@@ -92,22 +86,20 @@ private:
         std::string minute = timestamp.substr(13, 2);
         std::string second = timestamp.substr(16, 2);
 
-        std::string oldLogFileName = "../TestShell/until_" + year + month + day + "_" + hour + "h_" + minute + "m_" + second + "s.log";
+        std::string oldLogFileName = logDir + "until_" + year + month + day + "_" + hour + "h_" + minute + "m_" + second + "s.log";
         std::filesystem::rename(logFileName, oldLogFileName);
 
         compressOldestLogFile();
     }
 
     void compressOldestLogFile() {
-        std::string dir = "../TestShell/";
-
-        std::string oldLogFileName = findOldestLogFile(dir);
-        if (oldLogFileName == "") return;
+        std::string oldLogFileName = findOldestLogFile(logDir);
+        if (oldLogFileName.empty()) return;
 
         std::string zipFileName = oldLogFileName;
         zipFileName.replace(zipFileName.find(".log"), 4, ".zip");
 
-        std::filesystem::rename(dir + oldLogFileName, dir + zipFileName);
+        std::filesystem::rename(logDir + oldLogFileName, logDir + zipFileName);
     }
 
     long long parseLogFileNameToNumber(const std::string& filename) {
@@ -118,13 +110,11 @@ private:
         iss.ignore(5);
         iss >> month >> day >> unused >> hour >> unused >> minute >> unused >> second;
 
-        // 날짜와 시간 정보를 하나의 큰 숫자로 결합 (년, 월, 일, 시, 분, 초 순서)
-        long long timestamp = static_cast<long long>(month) * 10000000000LL +
+        return static_cast<long long>(month) * 10000000000LL +
             static_cast<long long>(day) * 100000000LL +
             static_cast<long long>(hour) * 1000000LL +
             static_cast<long long>(minute) * 10000LL +
             static_cast<long long>(second);
-        return timestamp;
     }
 
     std::string findOldestLogFile(const std::string& folderPath) {
@@ -141,8 +131,7 @@ private:
             if (entry.is_regular_file()) {
                 std::string filename = entry.path().filename().string();
 
-                // 로그 파일 이름 패턴 검사 (until_XXXXXX_XXh_XXm_XXs.log 형식)
-                if (filename.find("until_") == 0 && filename.size() > 4 && filename.find(".log") != std::string::npos) {
+                if (filename.find("until_") == 0 && filename.find(".log") != std::string::npos) {
                     long long fileTimestamp = parseLogFileNameToNumber(filename);
 
                     if (fileTimestamp < oldestTimestamp) {
@@ -153,10 +142,6 @@ private:
             }
         }
 
-        if (!oldestFile.empty()) {
-            return oldestFile;
-        }
-     
-        return "";
+        return oldestFile;
     }
 };
