@@ -16,7 +16,8 @@ public:
 	void addCommandToBuffer(vector<string> cmdLine);
 private:
 	void getFileList(void);
-	void reorderCommandBuffer(void);
+	void reorderCommandBufferAndStore(void);
+	void resetCommandBuffer(void);
 	vector<string> splitString(const string& str, char delimiter);
 
 	vector<string> m_dafaultFileName

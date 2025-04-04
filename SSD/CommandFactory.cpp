@@ -4,6 +4,16 @@
 #include "EraseCommand.h"
 #include "FlushCommand.h"
 
+CommandFactory* CommandFactory::m_instance = nullptr;
+
+CommandFactory* CommandFactory::getInstance(void)
+{
+	if (m_instance == nullptr) {
+		m_instance = new CommandFactory();
+	}
+	return m_instance;
+}
+
 
 unique_ptr<Command> CommandFactory::getCommandObjct(string str)
 {

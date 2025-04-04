@@ -6,7 +6,7 @@
 const string SSD_NAND_PATH = "ssd_nand.txt";
 const string SSD_OUTPUT_PATH = "../Release/ssd_output.txt";
 
-CommandFactory cmdFactory;
+
 CommandBuffer cmdBuffer;
 
 Ssd::Ssd()
@@ -22,7 +22,7 @@ bool Ssd::excuteCommand(string commandLine)
 	vector<string> cmdLine = splitString(commandLine);
 	string command = cmdLine[0];
 
-    auto pCommand = cmdFactory.getCommandObjct(command);
+	auto pCommand = CommandFactory::getInstance()->getCommandObjct(command);
 
     if (pCommand == nullptr) return false;
 

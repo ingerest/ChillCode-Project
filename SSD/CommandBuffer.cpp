@@ -1,5 +1,8 @@
 #include "CommandBuffer.h"
+#include "Command.h"
+#include "CommandFactory.h"
 #include <filesystem>
+#include <algorithm>
 
 using namespace std;
 
@@ -43,22 +46,156 @@ void CommandBuffer::getFileList(void)
 				{
 					m_writeBitmap.setBit(stoi(vCommand[2]));
 				}
-				else
-				{
-					cout << "Error: Invalid command type" << endl;
-					return;
-				}
 				m_validCommandCount++;
 			}
 		}
 	}
 }
 
-void CommandBuffer::reorderCommandBuffer(void)
+void CommandBuffer::reorderCommandBufferAndStore(void)
+{
+	vector<string> changedFileName;
+	changedFileName = m_currentFileName;
+	
+	string lastCommand = m_currentFileName[m_validCommandCount - 1];
+	
+	lastCommand.erase(0, 2);
+
+	vector<string>vCommand = splitString(lastCommand, '_');
+
+	if (vCommand[0] == "W")
+	{
+		uint32_t nLba = stoi(vCommand[1]);
+		if (m_writeBitmap.getBit(nLba) == 1)
+		{		
+			for (uint32_t index = 0; index < m_validCommandCount -1; index++)
+			{
+				vector<string>targetCommand = splitString(m_currentFileName[index], '_');
+				if ((targetCommand[1] == "W") && (targetCommand[2] == vCommand[1]))
+				{
+					changedFileName.erase(changedFileName.begin() + index);
+					changedFileName.insert(changedFileName.begin() + m_validCommandCount - 1, m_dafaultFileName[m_validCommandCount - 1]);
+					break;
+				}
+			}
+		}		
+	}
+	else if (vCommand[0] == "E")
+	{
+		uint32_t nStartLba = stoi(vCommand[1]);
+		uint32_t nLength = stoi(vCommand[2]);
+		uint32_t nEndLba = nStartLba + nLength - 1;
+		uint32_t indexLba = nStartLba;
+
+
+		for (; indexLba <= nEndLba; indexLba++)
+		{
+			if (m_writeBitmap.getBit(indexLba) == 1)
+			{
+				for (uint32_t index = 0; index < m_validCommandCount - 1; index++)
+				{
+					vector<string>targetCommand = splitString(m_currentFileName[index], '_');
+					if ((targetCommand[1] == "W") && (targetCommand[2] == vCommand[1]))
+					{
+						changedFileName.erase(changedFileName.begin() + index);
+						changedFileName.insert(changedFileName.begin() + m_validCommandCount - 1, m_dafaultFileName[m_validCommandCount - 1]);
+						break;
+					}
+				}
+				break;
+			}
+		}
+
+
+		for (int32_t index = m_validCommandCount - 2 ; index >=  0; index--)
+		{
+			vector<string>targetCommand = splitString(m_currentFileName[index], '_');
+			if (targetCommand[1] == "E")
+			{
+				uint32_t nTagetStartLba = stoi(targetCommand[2]);
+				uint32_t nTargetLenth = stoi(targetCommand[3]);
+				uint32_t nTargetEndLba = nTagetStartLba + nTargetLenth - 1;
+
+				if ((nTagetStartLba == nEndLba + 1) || (nTargetEndLba + 1 == nStartLba))
+				{
+					if ((nTargetLenth + nLength) <= 10)
+					{
+						uint32_t	nNewStartLba = (nTagetStartLba > nStartLba) ? nStartLba : nTagetStartLba;
+						uint32_t nNewLenth = nTargetLenth + nLength;
+						changedFileName.erase(changedFileName.begin() + m_validCommandCount - 1);
+						changedFileName.insert(changedFileName.begin() + m_validCommandCount - 1, m_dafaultFileName[m_validCommandCount - 1]);
+						changedFileName.erase(changedFileName.begin() + index);
+
+						string strNewFile = to_string(m_validCommandCount - 2) + "_" + targetCommand[1] + "_" + to_string(nNewStartLba) + "_" + to_string(nNewLenth);
+						changedFileName.insert(changedFileName.begin() + m_validCommandCount - 2, strNewFile);
+						m_validCommandCount--;
+						break;
+					}
+					else continue;
+				}
+				else if ((nTagetStartLba > nEndLba) || (nStartLba > nTargetEndLba))
+				{
+					continue;
+				}
+				else
+				{
+					uint32_t	nNewStartLba = (nTagetStartLba > nStartLba) ? nStartLba : nTagetStartLba;
+					uint32_t nNewEndLba = (nTargetEndLba > nEndLba) ? nTargetEndLba : nEndLba;
+					
+					if ((nNewEndLba - nNewEndLba + 1) <= 10)
+					{
+						uint32_t nNewLenth = nTargetLenth + nLength;
+						changedFileName.erase(changedFileName.begin() + m_validCommandCount - 1);
+						changedFileName.insert(changedFileName.begin() + m_validCommandCount - 1, m_dafaultFileName[m_validCommandCount - 1]);
+						changedFileName.erase(changedFileName.begin() + index);
+
+						string strNewFile = to_string(m_validCommandCount - 2) + "_" + targetCommand[1] + "_" + to_string(nNewStartLba) + "_" + to_string(nNewLenth);
+						changedFileName.insert(changedFileName.begin() + m_validCommandCount - 2, strNewFile);
+						m_validCommandCount--; 
+						break;
+					}
+					else continue;
+				}						
+			}
+		}
+	}
+
+	for (uint32_t index = 0; index < m_validCommandCount; index++)
+	{
+		vector<string>targetCommand = splitString(changedFileName[index], '_');
+
+		if (index != stoi(targetCommand[0]))
+		{
+			changedFileName[index].erase(0, 1);
+			changedFileName[index] = to_string(index) + changedFileName[index];
+		}
+	}
+
+	for (uint32_t index = 0; index < m_validCommandCount; index++)
+	{
+		if (!fs::exists(m_currentFileName[index])) 
+		{
+			cerr << "오류: 변경하려는 파일이 존재하지 않습니다.\n";
+			return;
+		}
+		fs::rename(m_currentFileName[index], changedFileName[index]);
+	}
+
+}
+
+void CommandBuffer::resetCommandBuffer(void)
 {
 	for (uint32_t index = 0; index < m_validCommandCount; index++)
 	{
+		if (!fs::exists(m_currentFileName[index]))
+		{
+			cerr << "오류: 변경하려는 파일이 존재하지 않습니다.\n";
+			return;
+		}
+		fs::rename(m_currentFileName[index], m_dafaultFileName[index]);
 	}
+
+	m_validCommandCount = 0;
 }
 
 
@@ -107,15 +244,26 @@ bool CommandBuffer::isFullCommandBuffer(void)
 
 void CommandBuffer::triggerCommandProcessing(void)
 {
+	for (uint32_t index = 0; index < m_validCommandCount; index++)
+	{
+		string cmdLine = m_currentFileName[index];
+		
+		cmdLine.erase(0, 2);
 
+		string commandType = cmdLine.substr(0, 1);
+		replace(cmdLine.begin(), cmdLine.end(), '_', ' ');
+		CommandFactory::getInstance()->getCommandObjct(commandType)->excuteCommand(cmdLine, "../Release/ssd_output.txt", "ssd_nand.txt");
+	}
+
+	resetCommandBuffer();
 }
 
 void CommandBuffer::addCommandToBuffer(vector<string> cmdLine)
 {
 	m_currentFileName[m_validCommandCount] 
 		= to_string(m_validCommandCount) + "_" + cmdLine[0] + "_" + cmdLine[1] + "_" + cmdLine[2];
-		m_validCommandCount++;
-	reorderCommandBuffer();
+	m_validCommandCount++;
+	reorderCommandBufferAndStore();
 }
 
 
