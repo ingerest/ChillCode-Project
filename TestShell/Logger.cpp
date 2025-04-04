@@ -42,7 +42,7 @@ public:
         std::streampos fileSize = infile.tellg();
         infile.close();
 
-        if (fileSize >= 2048) {
+        if (fileSize >= 1024 * 10) {
             rotateLogFile();
         }
     }

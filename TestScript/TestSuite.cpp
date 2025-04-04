@@ -12,12 +12,12 @@ int runTest(const char* command, TestShell* shell) {
 
     const std::string commandLine(command);
 
-    std::cout << "[Command] " << commandLine << std::endl;
+    //std::cout << "[Command] " << commandLine << std::endl;  // 화면 표시 삭제
 
     auto test = TestCommandFactory::create(commandLine, shell);
     if (!test) {
-        std::cerr << "[Error] Unknown command: " << commandLine << std::endl;
-        return 0;
+        //std::cerr << "[Error] Unknown command: " << commandLine << std::endl;// 화면 표시 삭제
+        return -1;
     }
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -25,7 +25,7 @@ int runTest(const char* command, TestShell* shell) {
     auto end = std::chrono::high_resolution_clock::now();
 
     std::chrono::duration<double> duration = end - start;
-    std::cout << "Running Time: " << duration.count() << " s" << std::endl;
+    //std::cout << "Running Time: " << duration.count() << " s" << std::endl;// 화면 표시 삭제
 
     return result;
 }

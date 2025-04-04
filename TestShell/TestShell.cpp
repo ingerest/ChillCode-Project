@@ -156,7 +156,8 @@ private:
             return handle4_EraseAndWriteAgingCommand();
         }
         else {
-            throw invalid_argument("INVALID COMMAND");
+            int res = handleRunnerCommand(command);
+            if (res == -1) throw invalid_argument("INVALID COMMAND");
         }
     }
 
@@ -435,7 +436,32 @@ private:
         return "PASS";
     }
 
+    typedef int (*RunTestFunc)(const char*, TestShell*);
 
+    int handleRunnerCommand(string command) {
+        HMODULE hModule = LoadLibraryA("TestScript.dll");
+        if (!hModule) {
+            std::cerr << "DLL 로딩 실패" << std::endl;  // ToDo : Loger로 처리 필요
+            return -1;
+        }
+
+        RunTestFunc runTest = (RunTestFunc)GetProcAddress(hModule, "runTest");
+        if (!runTest) {
+            std::cerr << "함수 찾기 실패" << std::endl;   // ToDo : Loger로 처리 필요
+            FreeLibrary(hModule);
+            return -1;
+        }
+
+        TestShell shell;  // 가짜 or 진짜 객체
+        int result = runTest(command.c_str(), &shell);
+        if (result == -1) return -1;    // "INVALID COMMAND"
+        string Result = (result == 1) ? "PASS" : "FAIL";
+        std::cout << Result;
+
+        FreeLibrary(hModule);
+        return 0;
+
+    }
 
 
 
