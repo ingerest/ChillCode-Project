@@ -225,14 +225,14 @@ int main()
 
 #else
 
-#define _RUNNER 1
-#ifdef _RUNNER
+//#define _RUNNER_TEST
+#ifdef _RUNNER_TEST
 
 typedef int (*RunTestFunc)(const char*, TestShell*);
 
 int main() {
-    HMODULE hModule = LoadLibraryA("..\\x64\\Release\\TestScript.dll");
-    //HMODULE hModule = LoadLibraryA("C:\\Users\\User\\ChillCode-Project\\x64\\Release\\TestScript.dll");
+    //HMODULE hModule = LoadLibraryA("..\\x64\\Release\\TestScript.dll");
+    HMODULE hModule = LoadLibraryA("TestScript.dll");
     if (!hModule) {
         std::cerr << "DLL 로딩 실패" << std::endl;
         return 1;
