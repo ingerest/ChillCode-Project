@@ -1,5 +1,4 @@
 #pragma once
-#include "../TestShell/TestShell.cpp"
 #include "TestUtils.h"
 
 class ITestCommand {

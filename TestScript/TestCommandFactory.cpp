@@ -1,11 +1,15 @@
 #include "TestCommandFactory.h"
 #include "FullWriteAndReadCompareCommand.h"
+#include "PartialLBAWrite.h"
+#include "WriteReadAging.h"
 #include <unordered_map>
 #include <functional>
 
 // 커맨드 등록 테이블
 static const std::unordered_map<std::string, std::function<std::unique_ptr<ITestCommand>()>> commandMap = {
-    {"1", []() { return std::make_unique<FullWriteAndReadCompareCommand>(); }}
+    {"1", []() { return std::make_unique<FullWriteAndReadCompareCommand>(); }},
+    {"2", []() { return std::make_unique<PartialLBAWrite>(); }},
+    {"3", []() { return std::make_unique<WriteReadAging>(); }}
 };
 
 std::string TestCommandFactory::extractCommandKey(const std::string& commandName) {
