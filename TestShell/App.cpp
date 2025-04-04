@@ -16,14 +16,16 @@ int App::run(int argc, char* argv[]) {
         return runRunnerMode(arg);
     }
 
-    Logger::getInstance().log("App::run", "Command Mode Start");
     return runCommandMode();
 }
 
 int App::runRunnerMode(const string& filename) {
+
+    Logger::getInstance().log("App::run", "Runner Mode Start.");
+
     ifstream file(filename);
     if (file.is_open() == false) {
-        Logger::getInstance().log("App::run", "File Open Fail !!!");
+        Logger::getInstance().log("App::runRunnerMode", "File Open Fail !!!");
         return -1;
     }
 
@@ -36,6 +38,11 @@ int App::runRunnerMode(const string& filename) {
         result = callDllTestScript(command);
         resultString = (result == 1) ? "PASS" : "FAIL!";
         cout << resultString << endl;
+
+        if (resultString == "FAIL!")
+        {
+            break;
+        }
     }
 
     return 0;
