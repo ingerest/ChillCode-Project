@@ -33,7 +33,7 @@ public:
         Logger::getInstance().log("executeSSD", "Application started");
 
         string fullCommand = command;
-        
+
         if (command != "F")
         {
             fullCommand += " " + lba;
@@ -133,7 +133,7 @@ private:
         }
         else if (command == "flush") {
             executeSSD("F", "", "");
-            
+
             string value = readFile();
             if (value == "ERROR")
             {
@@ -151,6 +151,9 @@ private:
         }
         else if (command == "3_WriteReadAging" || command == "3_") {
             return handle3_WriteReadAgingCommand();
+        }
+        else if (command == "4_EraseAndWriteAging" || command == "4_") {
+            return handle4_EraseAndWriteAgingCommand();
         }
         else {
             throw invalid_argument("INVALID COMMAND");
@@ -182,7 +185,7 @@ private:
 
             if (lba + currentChunkSize - 1 > maxLba)
             {
-                currentChunkSize = maxLba - lba +1;
+                currentChunkSize = maxLba - lba + 1;
             }
 
             executeSSD("E", to_string(lba), to_string(currentChunkSize));
@@ -398,6 +401,36 @@ private:
 
             if (readCompare(0, inputs[i]) == false) return "FAIL";
             if (readCompare(99, inputs[i]) == false) return "FAIL";
+        }
+        return "PASS";
+    }
+
+    bool eraseRangeScriptSubCommand(int s, int e) {
+        string input = "erase_range " + std::to_string(s) + " " + std::to_string(e);
+        istringstream stream(input);
+        string command;
+        stream >> command;
+
+        string result = handleEraseRangeCommand(stream);
+
+        if (result == "[Erase] Done") return true;
+        return false;
+    };
+
+    string handle4_EraseAndWriteAgingCommand() {
+
+        string inputs[2];
+
+        for (int i = 0; i < 30; i++) {
+
+            for (int j = 2; j < 99; j += 2) {
+                inputs[0] = unsignedIntToHexString(generateRandomHex());
+                inputs[1] = unsignedIntToHexString(generateRandomHex());
+
+                if (writeScriptSubCommand(j, inputs[0]) == false) return "FAIL";
+                if (writeScriptSubCommand(j, inputs[1]) == false) return "FAIL";
+                if (eraseRangeScriptSubCommand(j, (((j + 2) < 100) ? (j + 2) : 99)) == false) return "FAIL";
+            }
         }
         return "PASS";
     }
