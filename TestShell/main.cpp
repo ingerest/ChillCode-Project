@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <string>
+#include "App.h"
 
 using namespace testing;
 
@@ -244,60 +245,9 @@ int main()
 }
 
 #else
-
-//#define _RUNNER_TEST
-#ifdef _RUNNER_TEST
-
-typedef int (*RunTestFunc)(const char*, TestShell*);
-
-int main() {
-    //HMODULE hModule = LoadLibraryA("..\\x64\\Release\\TestScript.dll");
-    HMODULE hModule = LoadLibraryA("TestScript.dll");
-    if (!hModule) {
-        std::cerr << "DLL 로딩 실패" << std::endl;
-        return 1;
-    }
-
-    RunTestFunc runTest = (RunTestFunc)GetProcAddress(hModule, "runTest");
-    if (!runTest) {
-        std::cerr << "함수 찾기 실패" << std::endl;
-        FreeLibrary(hModule);
-        return 1;
-    }
-
-    TestShell shell;  // 가짜 or 진짜 객체
-    int result = runTest("4_EraseAndWriteAging", &shell);
-    std::cout << "runTest result: " << result << std::endl;
-
-    FreeLibrary(hModule);
-    return 0;
-}
-#else
-int main()
+int main(int argc, char* argv[])
 {
-    TestShell testShell;
-
-    while (1)
-    {
-        std::string input;
-
-        std::cout << "\n>>";
-        std::getline(std::cin, input);
-
-        string output = testShell.execute(input);
-        cout << output;
-
-        if (output == "[exit] Done")
-        {
-            break;
-        }
-    }
+    App app;
+    app.run(argc, argv);
 }
-
-
-
-
-#endif
-
-
 #endif
