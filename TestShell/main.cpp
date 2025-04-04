@@ -110,6 +110,21 @@ private:
 
         return input.substr(0, pos);
     }
+
+    std::string getValue(std::string input) {
+        size_t pos = input.find(' ');               // 첫 번째 공백을 찾기
+        if (pos == std::string::npos) return "";    // 공백이 없으면 return
+        input = input.substr(pos + 1, input.length());
+
+        pos = input.find(' ');                      // 두 번째 공백을 찾기
+        if (pos == std::string::npos) return "";    // 공백이 없으면 return
+        input = input.substr(pos + 1, input.length());
+
+        pos = input.find(' ');                              // 세 번째 공백을 찾기
+        if (pos == std::string::npos) pos = input.length(); // 공백이 없으면 마지막 위치
+
+        return input.substr(0, pos);
+    }
 };
 
 // 예외처리 ////////////////////////////////////
@@ -170,7 +185,8 @@ TEST_F(CommandTest, TestHelpCommand00) {
 
 // fullwrite ////////////////////////////////////
 TEST_F(CommandTest, TestFullwrite00) {
-    executeFullwriteTest("fullwrite 0xABCDFFFF", "W", "0xABCDFFFF", "[Fullwrite] Done");
+    //executeFullwriteTest("fullwrite 0xABCDFFFF", "W", "0xABCDFFFF", "[Fullwrite] Done");
+    executeFullwriteTest("fullwrite 0xABCDFFFF", "0xABCDFFFF", "[Fullwrite] Done");
 }
 
 //// fullread ////////////////////////////////////
@@ -186,8 +202,12 @@ TEST(TG_FULL, TestFullread00) {
 
     std::string expected = "0x00000000";
 
-    TestShell testShell;
-    std::string str = testShell.execute("fullread");
+    MockTestShell mockTestShell;
+    EXPECT_CALL(mockTestShell, readFile())
+        .Times(100)
+        .WillRepeatedly(Return(expected));
+
+    std::string str = mockTestShell.execute("fullread");
     std::istringstream stream(str);
     std::string line;
 

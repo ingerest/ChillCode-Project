@@ -486,8 +486,8 @@ private:
             return -1;
         }
 
-        TestShell shell;
-        int result = runTest(command.c_str(), &shell);
+        int result = runTest(command.c_str(), this);
+
         if (result == -1) return -1;    // "INVALID COMMAND"
         string Result = (result == 1) ? "PASS" : "FAIL";
         std::cout << Result;
