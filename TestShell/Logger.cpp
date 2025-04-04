@@ -7,43 +7,68 @@
 #include <iomanip>
 #include <ctime>
 #include <filesystem>
+#include <chrono>
 
 class Logger {
 public:
-    // 싱글턴 인스턴스를 반환하는 메서드
     static Logger& getInstance() {
-        static Logger instance;  // 최초 호출 시 인스턴스가 생성됨
+        static Logger instance;
         return instance;
     }
 
-    // 로그를 기록하는 메서드
     void log(const std::string& function, const std::string& message) {
         std::string timestamp = getTimestamp();
         std::string formattedMessage = formatMessage(function, message);
-
-        manageLogFileSize();
-
+        
+        manageFileSize();
+        
         std::ofstream logFile(logFileName, std::ios::app);
-        if (logFile.is_open()) {
-            // 타임스탬프와 포맷된 메시지를 로그 파일에 추가
-            logFile << timestamp << " " << formattedMessage << std::endl;
-            logFile.close();
+        if (!logFile.is_open()) {
+            return;
+        }
+
+        logFile << timestamp << " " << formattedMessage << std::endl;
+        logFile.close();
+    }
+
+    void manageFileSize()
+    {
+        std::ifstream infile(logFileName, std::ios::binary);
+        if (!infile.is_open()) {
+            return;
+        }
+
+        infile.seekg(0, std::ios::end);
+        std::streampos fileSize = infile.tellg();
+        infile.close();
+
+        if (fileSize >= 2048) {
+            rotateLogFile();
         }
     }
 
 private:
-    std::string logFileName = "../TestShell/latest.log"; // 로그 파일 이름
+    std::string logFileName = "../TestShell/latest.log";
 
     Logger() {
+        initializeLatestLogFile();
     }
 
     Logger(const Logger&) = delete;
     Logger& operator=(const Logger&) = delete;
 
+    void initializeLatestLogFile()
+    {
+        std::ofstream file(logFileName, std::ios::trunc);
+        if (!file.is_open()) {
+            return;
+        }
+        file.close();
+    }
+
     std::string getTimestamp() {
         auto now = std::time(nullptr);
         std::tm tm;
-        // localtime_s를 사용하여 안전하게 변환
         localtime_s(&tm, &now);
 
         std::ostringstream timestamp;
@@ -57,47 +82,81 @@ private:
         return oss.str();
     }
 
-    void manageLogFileSize() {
-        std::ifstream logFile(logFileName, std::ios::binary | std::ios::ate);
-
-        if (logFile.is_open()) {
-            std::streamsize size = logFile.tellg();
-            bool needRotate = false;
-            if (size > 2 * 1024) {  // 파일 크기가 1KB를 초과하면 (단위 수정 필요)
-                needRotate = true;
-            }
-
-            logFile.close();
-            if (needRotate == true)
-            {
-                rotateLogFile();
-            }
-        }
-    }
-
     void rotateLogFile() {
         std::string timestamp = getTimestamp();
 
-        std::string year = timestamp.substr(1, 2);  // 년도 두 자리를 추출 (예: 25)
-        std::string month = timestamp.substr(4, 2); // 월 추출 (예: 04)
-        std::string day = timestamp.substr(7, 2);   // 일 추출 (예: 03)
-        std::string hour = timestamp.substr(11, 2);  // 시간 추출 (예: 17)
-        std::string minute = timestamp.substr(14, 2); // 분 추출 (예: 12)
-        std::string second = timestamp.substr(17, 2); // 초 추출 (예: 11)
+        std::string year = timestamp.substr(1, 2);
+        std::string month = timestamp.substr(4, 2);
+        std::string day = timestamp.substr(7, 2);
+        std::string hour = timestamp.substr(10, 2);
+        std::string minute = timestamp.substr(13, 2);
+        std::string second = timestamp.substr(16, 2);
 
-        std::string newLogFileName = "../TestShell/until_" + year + month + day + "_" + hour + "h_" + minute + "m_" + second + "s.log";
-        std::filesystem::rename(logFileName, newLogFileName);  // 기존 파일을 새 이름으로 변경
+        std::string oldLogFileName = "../TestShell/until_" + year + month + day + "_" + hour + "h_" + minute + "m_" + second + "s.log";
+        std::filesystem::rename(logFileName, oldLogFileName);
 
-        compressLogFiles(newLogFileName);
+        compressOldestLogFile();
     }
 
-    // 로그 파일을 압축합니다. (예: gzip 압축)
-    void compressLogFiles(const std::string& oldLogFileName) {
-        // 실제 압축을 위한 코드 (zlib을 사용할 수 있습니다)
-        std::string zipFileName = oldLogFileName + ".zip";
-        std::ofstream zipFile(zipFileName, std::ios::binary);
+    void compressOldestLogFile() {
+        std::string dir = "../TestShell/";
 
-        // 압축 로직 추가 (예: zlib 사용)
-        std::cout << "Compressing log file: " << oldLogFileName << " to " << zipFileName << std::endl;
+        std::string oldLogFileName = findOldestLogFile(dir);
+        if (oldLogFileName == "") return;
+
+        std::string zipFileName = oldLogFileName;
+        zipFileName.replace(zipFileName.find(".log"), 4, ".zip");
+
+        std::filesystem::rename(dir + oldLogFileName, dir + zipFileName);
+    }
+
+    long long parseLogFileNameToNumber(const std::string& filename) {
+        int month, day, hour, minute, second;
+        char unused;
+
+        std::istringstream iss(filename);
+        iss.ignore(5);
+        iss >> month >> day >> unused >> hour >> unused >> minute >> unused >> second;
+
+        // 날짜와 시간 정보를 하나의 큰 숫자로 결합 (년, 월, 일, 시, 분, 초 순서)
+        long long timestamp = static_cast<long long>(month) * 10000000000LL +
+            static_cast<long long>(day) * 100000000LL +
+            static_cast<long long>(hour) * 1000000LL +
+            static_cast<long long>(minute) * 10000LL +
+            static_cast<long long>(second);
+        return timestamp;
+    }
+
+    std::string findOldestLogFile(const std::string& folderPath) {
+        std::filesystem::path folder(folderPath);
+
+        if (!std::filesystem::exists(folder) || !std::filesystem::is_directory(folder)) {
+            return "";
+        }
+
+        std::string oldestFile;
+        long long oldestTimestamp = LLONG_MAX;
+
+        for (const auto& entry : std::filesystem::directory_iterator(folder)) {
+            if (entry.is_regular_file()) {
+                std::string filename = entry.path().filename().string();
+
+                // 로그 파일 이름 패턴 검사 (until_XXXXXX_XXh_XXm_XXs.log 형식)
+                if (filename.find("until_") == 0 && filename.size() > 4 && filename.find(".log") != std::string::npos) {
+                    long long fileTimestamp = parseLogFileNameToNumber(filename);
+
+                    if (fileTimestamp < oldestTimestamp) {
+                        oldestFile = filename;
+                        oldestTimestamp = fileTimestamp;
+                    }
+                }
+            }
+        }
+
+        if (!oldestFile.empty()) {
+            return oldestFile;
+        }
+     
+        return "";
     }
 };
