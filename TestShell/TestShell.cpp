@@ -11,6 +11,7 @@
 #include <io.h>
 #include <filesystem>
 #include <random>
+#include <algorithm>
 
 #include "Logger.cpp"
 
@@ -75,24 +76,11 @@ private:
         return "";
     }
 
-    int handleRunnerCommand(string command) {
-        HMODULE hModule = LoadLibraryA("TestScript.dll");
-        if (!hModule) {
-            Logger::getInstance().log("handleRunnerCommand", "Failed to load DLL");
-            return -1;
-        }
-
-        RunTestFunc runTest = (RunTestFunc)GetProcAddress(hModule, "runTest");
-        if (!runTest) {
-            Logger::getInstance().log("handleRunnerCommand", "Failed to find function");
-            FreeLibrary(hModule);
-            return -1;
-        }
-
-        int result = runTest(command.c_str(), this);
-
-        FreeLibrary(hModule);
-        return (result == -1) ? -1 : (result == 1) ? "PASS" : "FAIL";
+    bool isTestScriptCommand(const string& command) {
+        return command == "1_FullWriteAndReadCompare" || command == "1_" ||
+            command == "2_PartialLBAWrite" || command == "2_" ||
+            command == "3_WriteReadAging" || command == "3_" ||
+            command == "4_EraseAndWriteAging" || command == "4_";
     }
 
     string handleTestScriptCommand(const string& command) {
@@ -106,13 +94,6 @@ private:
             return handle4_EraseAndWriteAgingCommand();
 
         return "Test script command not recognized.";
-    }
-
-    bool isTestScriptCommand(const string& command) {
-        return command == "1_FullWriteAndReadCompare" || command == "1_" ||
-            command == "2_PartialLBAWrite" || command == "2_" ||
-            command == "3_WriteReadAging" || command == "3_" ||
-            command == "4_EraseAndWriteAging" || command == "4_";
     }
 
     string constructCommand(const string& command, const string& lba, const string& value) {
@@ -234,7 +215,15 @@ private:
 
     string executeEraseByChunks(int& lba, int& size, int maxLba, int chunkSize) {
         while (size > 0 && lba <= maxLba) {
-            int currentChunkSize = std::min(chunkSize, size);
+            int currentChunkSize;
+
+            if (size < chunkSize) {
+                currentChunkSize = size;
+            }
+            else {
+                currentChunkSize = chunkSize;
+            }
+
             if (lba + currentChunkSize - 1 > maxLba) {
                 currentChunkSize = maxLba - lba + 1;
             }
