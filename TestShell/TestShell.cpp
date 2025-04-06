@@ -32,43 +32,19 @@ public:
 
     virtual void executeSSD(const string& command, const string& lba, const string& value) {
         Logger::getInstance().log("executeSSD", "Application started");
-
-        string fullCommand = command;
-
-        if (command != "F")
-        {
-            fullCommand += " " + lba;
-        }
-
-        if (command == "W" || command == "E") {
-            fullCommand += " " + value;
-        }
+        string fullCommand = constructCommand(command, lba, value);
 
         string exePath = "../Release";
         SetCurrentDirectory(exePath.c_str());
 
-        if (runCommandAndWait("ssd.exe", fullCommand) == false)
-        {
-            throw invalid_argument("INVALID COMMAND");
+        if (!runCommandAndWait("ssd.exe", fullCommand)) {
+            Logger::getInstance().log("executeSSD", "runCommandAndWait Failed.");
+            throw invalid_argument("");
         }
     }
 
     virtual string readFile() {
-        string filePath = "../Release/ssd_output.txt";
-        ifstream file(filePath);
-
-        string line;
-        string value;
-
-        if (file.is_open()) {
-            while (getline(file, line))
-            {
-                value = line.c_str();
-            }
-            file.close();
-        }
-
-        return value;
+        return readFileContent("../Release/ssd_output.txt");
     }
 
 private:
@@ -77,163 +53,124 @@ private:
         istringstream stream(userInput);
         stream >> command;
 
-        if (command == "read")
-        {
-            return handleReadCommand(stream);
+        return executeCommand(command, stream);
+    }
+
+    string executeCommand(const string& command, istringstream& stream) {
+        if (command == "read") return handleReadCommand(stream);
+        if (command == "write") return handleWriteCommand(stream);
+        if (command == "exit") return "[exit] Done";
+        if (command == "help") return getHelpInfo();
+        if (command == "fullwrite") return handleFullWriteCommand(stream);
+        if (command == "fullread") return handleFullReadCommand();
+        if (command == "erase") return handleEraseCommand(stream);
+        if (command == "erase_range") return handleEraseRangeCommand(stream);
+        if (command == "flush") return handleFlushCommand();
+        if (isTestScriptCommand(command)) return handleTestScriptCommand(command);
+
+        // Need Double Check
+        int result = handleRunnerCommand(command);
+        if (result == -1) throw invalid_argument("INVALID COMMAND");
+
+        return "";
+    }
+
+    int handleRunnerCommand(string command) {
+        HMODULE hModule = LoadLibraryA("TestScript.dll");
+        if (!hModule) {
+            Logger::getInstance().log("handleRunnerCommand", "Failed to load DLL");
+            return -1;
         }
-        else if (command == "write")
-        {
-            return handleWriteCommand(stream);
+
+        RunTestFunc runTest = (RunTestFunc)GetProcAddress(hModule, "runTest");
+        if (!runTest) {
+            Logger::getInstance().log("handleRunnerCommand", "Failed to find function");
+            FreeLibrary(hModule);
+            return -1;
         }
-        else if (command == "exit") {
-            return "[exit] Done";
-        }
-        else if (command == "help") {
-            return getHelpInfo();
-        }
-        else if (command == "fullwrite") {
-            return handleFullWriteCommand(stream);
-        }
-        else if (command == "fullread") {
-            return handleFullReadCommand();
-        }
-        else if (command == "erase") {
-            return handleEraseCommand(stream);
-        }
-        else if (command == "erase_range") {
-            return handleEraseRangeCommand(stream);
-        }
-        else if (command == "flush") {
-            return handleFlushCommand();
-        }
-        // Test Script
-        else if (command == "1_FullWriteAndReadCompare" || command == "1_") {
+
+        int result = runTest(command.c_str(), this);
+
+        FreeLibrary(hModule);
+        return (result == -1) ? -1 : (result == 1) ? "PASS" : "FAIL";
+    }
+
+    string handleTestScriptCommand(const string& command) {
+        if (command == "1_FullWriteAndReadCompare" || command == "1_")
             return handle1_FullWriteAndReadCompareCommand();
-        }
-        else if (command == "2_PartialLBAWrite" || command == "2_") {
+        if (command == "2_PartialLBAWrite" || command == "2_")
             return handle2_PartialLBACommand();
-        }
-        else if (command == "3_WriteReadAging" || command == "3_") {
+        if (command == "3_WriteReadAging" || command == "3_")
             return handle3_WriteReadAgingCommand();
-        }
-        else if (command == "4_EraseAndWriteAging" || command == "4_") {
+        if (command == "4_EraseAndWriteAging" || command == "4_")
             return handle4_EraseAndWriteAgingCommand();
-        }
-        else {
-            int res = handleRunnerCommand(command);
-            if (res == -1) throw invalid_argument("INVALID COMMAND");
-        }
+
+        return "Test script command not recognized.";
     }
 
-    const std::string& handleFlushCommand()
-    {
+    bool isTestScriptCommand(const string& command) {
+        return command == "1_FullWriteAndReadCompare" || command == "1_" ||
+            command == "2_PartialLBAWrite" || command == "2_" ||
+            command == "3_WriteReadAging" || command == "3_" ||
+            command == "4_EraseAndWriteAging" || command == "4_";
+    }
+
+    string constructCommand(const string& command, const string& lba, const string& value) {
+        string fullCommand = command;
+        if (command != "F") fullCommand += " " + lba;
+        if (command == "W" || command == "E") fullCommand += " " + value;
+        return fullCommand;
+    }
+
+    string readFileContent(const string& filePath) {
+        ifstream file(filePath);
+        string line, value;
+        if (file.is_open()) {
+            while (getline(file, line)) value = line.c_str();
+            file.close();
+        }
+        return value;
+    }
+
+    string handleFlushCommand() {
         executeSSD("F", "", "");
-
-        string value = readFile();
-        if (value == "ERROR")
-        {
-            return "[Flush] Error";
-        }
-
-        return "[Flush] Done";
+        return verifyExecution("[Flush] Done", "[Flush] Error");
     }
 
-    string handleEraseCommand(std::istringstream& stream)
-    {
+    string handleEraseCommand(istringstream& stream) {
         string startLba;
         stream >> startLba;
         validateLBA(startLba);
-
-        string sizeInString;
-        stream >> sizeInString;
-
-        int maxLba = 99;
-        int size = stoi(sizeInString);
-        int lba = stoi(startLba);
-        int chunkSize = 10;
-
-        while (size > 0 && lba <= maxLba) {
-            int currentChunkSize;
-            if (size > chunkSize) {
-                currentChunkSize = chunkSize;
-            }
-            else {
-                currentChunkSize = size;
-            }
-
-            if (lba + currentChunkSize - 1 > maxLba)
-            {
-                currentChunkSize = maxLba - lba + 1;
-            }
-
-            executeSSD("E", to_string(lba), to_string(currentChunkSize));
-
-            string value = readFile();
-            if (value == "ERROR")
-            {
-                return "[Erase] Error";
-            }
-
-            lba += currentChunkSize;
-            size -= currentChunkSize;
-        }
-
-        return "[Erase] Done";
+        return performEraseCommand(stream, startLba);
     }
 
-    string handleEraseRangeCommand(std::istringstream& stream)
-    {
-        string startLba;
-        stream >> startLba;
+    string handleEraseRangeCommand(istringstream& stream) {
+        string startLba, endLba;
+        stream >> startLba >> endLba;
         validateLBA(startLba);
-
-        string endLba;
-        stream >> endLba;
         validateLBA(endLba);
-
-        int size = stoi(endLba) - stoi(startLba) + 1;
-        std::istringstream eraseStream(startLba + " " + to_string(size));
-
-        return handleEraseCommand(eraseStream);
+        return performEraseRangeCommand(startLba, endLba);
     }
 
-    string handleWriteCommand(std::istringstream& stream)
-    {
-        string lbaString;
-        stream >> lbaString;
+    string handleWriteCommand(istringstream& stream) {
+        string lbaString, writeValue;
+        stream >> lbaString >> writeValue;
         validateLBA(lbaString);
-
-        string writeValue;
-        stream >> writeValue;
         validateValue(writeValue);
 
         executeSSD("W", lbaString, writeValue);
-
-        string value = readFile();
-        if (value == "ERROR")
-        {
-            return "[Write] Error";
-        }
-
-        return "[Write] Done";
+        return verifyExecution("[Write] Done", "[Write] Error");
     }
 
-    string handleReadCommand(std::istringstream& stream)
-    {
+    string handleReadCommand(istringstream& stream) {
         string lbaString;
         stream >> lbaString;
         validateLBA(lbaString);
 
         executeSSD("R", lbaString, "");
-
         string readOutput = readFile();
-        if (readOutput == "ERROR")
-        {
-            return "[Read] Error";
-        }
 
-        string ret = formatReadResult(lbaString, readOutput);
-        return ret;
+        return (readOutput == "ERROR") ? "[Read] Error" : formatReadResult(lbaString, readOutput);
     }
 
     string getHelpInfo() const {
@@ -244,15 +181,13 @@ private:
         string writeValue;
         stream >> writeValue;
         validateValue(writeValue);
-
         int startLba = 0;
         int endLba = 99;
 
         for (int lba = startLba; lba <= endLba; ++lba) {
             executeSSD("W", to_string(lba), writeValue);
             string readOutput = readFile();
-            if (readOutput == "ERROR")
-            {
+            if (readOutput == "ERROR") {
                 return "[Fullwrite] Error";
             }
         }
@@ -266,11 +201,69 @@ private:
 
         string result;
         for (int lba = startLba; lba <= endLba; ++lba) {
-            std::istringstream lbaStream(std::to_string(lba));
-            result += handleReadCommand(lbaStream) + "\n";
+            result += handleReadCommandForLba(lba) + "\n";
         }
 
         return result;
+    }
+
+    string handleReadCommandForLba(int lba) {
+        std::istringstream lbaStream(std::to_string(lba));
+        return handleReadCommand(lbaStream);
+    }
+
+    string verifyExecution(const string& successMessage, const string& errorMessage) {
+        string value = readFile();
+        if (value == "ERROR") {
+            return errorMessage;
+        }
+        return successMessage;
+    }
+
+    string performEraseCommand(istringstream& stream, const string& startLba) {
+        string sizeInString;
+        stream >> sizeInString;
+
+        int maxLba = 99;
+        int size = stoi(sizeInString);
+        int lba = stoi(startLba);
+        int chunkSize = 10;
+
+        return executeEraseByChunks(lba, size, maxLba, chunkSize);
+    }
+
+    string executeEraseByChunks(int& lba, int& size, int maxLba, int chunkSize) {
+        while (size > 0 && lba <= maxLba) {
+            int currentChunkSize = std::min(chunkSize, size);
+            if (lba + currentChunkSize - 1 > maxLba) {
+                currentChunkSize = maxLba - lba + 1;
+            }
+
+            executeSSD("E", to_string(lba), to_string(currentChunkSize));
+            string value = readFile();
+            if (value == "ERROR") {
+                return "[Erase] Error";
+            }
+
+            lba += currentChunkSize;
+            size -= currentChunkSize;
+        }
+
+        return "[Erase] Done";
+    }
+
+    string performEraseRangeCommand(const string& startLba, const string& endLba) {
+        int size = stoi(endLba) - stoi(startLba) + 1;
+        std::istringstream eraseStream(startLba + " " + to_string(size));
+        return handleEraseCommand(eraseStream);
+    }
+
+    string formatReadResult(const string& lba, const string& value) const {
+        std::ostringstream oss;
+        oss << "[Read] LBA "
+            << std::setw(2) << std::setfill('0') << lba
+            << " : " << value;
+        return oss.str();
     }
 
     bool runCommandAndWait(const string& exe, const string& args) {
@@ -293,14 +286,6 @@ private:
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
         return true;
-    }
-
-    string formatReadResult(const string& lba, const string& value) const {
-        std::ostringstream oss;
-        oss << "[Read] LBA "
-            << std::setw(2) << std::setfill('0') << lba
-            << " : " << value;
-        return oss.str();
     }
 
     void validateLBA(std::string lba) {
