@@ -6,6 +6,7 @@
 #include <sstream>
 #include "ISsdApi.h"
 #include "Command.h"
+#include "FilePathConfig.h"
 
 using namespace std;
 

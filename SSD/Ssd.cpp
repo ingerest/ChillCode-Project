@@ -3,10 +3,6 @@
 #include "CommandBuffer.h"
 
 
-const string SSD_NAND_PATH = "ssd_nand.txt";
-const string SSD_OUTPUT_PATH = "../Release/ssd_output.txt";
-
-
 CommandBuffer cmdBuffer;
 
 Ssd::Ssd()

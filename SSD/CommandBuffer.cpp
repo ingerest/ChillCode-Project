@@ -8,8 +8,6 @@ using namespace std;
 
 namespace fs = std::filesystem;
 
-const string COMMAND_BUFFER_PATH = "./buffer/";
-
 CommandBuffer::CommandBuffer()
 {
 	m_folderPath = COMMAND_BUFFER_PATH;

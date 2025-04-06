@@ -2,6 +2,7 @@
 
 #include "Command.h"
 #include "Bitmap128.h"
+#include "FilePathConfig.h"
 
 using namespace std;
 

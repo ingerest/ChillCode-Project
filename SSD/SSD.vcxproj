@@ -157,6 +157,7 @@
     <ClInclude Include="CommandBuffer.h" />
     <ClInclude Include="CommandFactory.h" />
     <ClInclude Include="EraseCommand.h" />
+    <ClInclude Include="FilePathConfig.h" />
     <ClInclude Include="FlushCommand.h" />
     <ClInclude Include="ReadCommand.h" />
     <ClInclude Include="Ssd.h" />
