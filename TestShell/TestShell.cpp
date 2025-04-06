@@ -42,6 +42,7 @@ public:
             Logger::getInstance().log("executeSSD", "runCommandAndWait Failed.");
             throw invalid_argument("");
         }
+        Logger::getInstance().log("executeSSD", "Command executed successfully: " + fullCommand);
     }
 
     virtual string readFile() {
@@ -50,6 +51,7 @@ public:
 
 private:
     string processCommand(const string& userInput) {
+        Logger::getInstance().log("processCommand", "Processing command: " + userInput);
         string command;
         istringstream stream(userInput);
         stream >> command;
@@ -58,6 +60,8 @@ private:
     }
 
     string executeCommand(const string& command, istringstream& stream) {
+        Logger::getInstance().log("executeCommand", "Executing command: " + command);
+
         if (command == "read") return handleReadCommand(stream);
         if (command == "write") return handleWriteCommand(stream);
         if (command == "exit") return "[exit] Done";
@@ -71,7 +75,11 @@ private:
 
         // Need Double Check
         int result = handleRunnerCommand(command);
-        if (result == -1) throw invalid_argument("INVALID COMMAND");
+        if (result == -1)
+        {
+            Logger::getInstance().log("executeCommand", "INVALID COMMAND: " + command);
+            throw invalid_argument("INVALID COMMAND");
+        }
 
         return "";
     }
@@ -84,6 +92,8 @@ private:
     }
 
     string handleTestScriptCommand(const string& command) {
+        Logger::getInstance().log("handleTestScriptCommand", "Handling test script command: " + command);
+
         if (command == "1_FullWriteAndReadCompare" || command == "1_")
             return handle1_FullWriteAndReadCompareCommand();
         if (command == "2_PartialLBAWrite" || command == "2_")
@@ -93,7 +103,8 @@ private:
         if (command == "4_EraseAndWriteAging" || command == "4_")
             return handle4_EraseAndWriteAgingCommand();
 
-        return "Test script command not recognized.";
+        Logger::getInstance().log("handleTestScriptCommand", "Test script command not recognized: " + command);
+        return "INVALID COMMAND";
     }
 
     string constructCommand(const string& command, const string& lba, const string& value) {
@@ -104,16 +115,26 @@ private:
     }
 
     string readFileContent(const string& filePath) {
+        Logger::getInstance().log("readFileContent", "Reading file: " + filePath);
+
         ifstream file(filePath);
         string line, value;
         if (file.is_open()) {
             while (getline(file, line)) value = line.c_str();
             file.close();
+
+            Logger::getInstance().log("readFileContent", "File read successfully.");
+        }
+        else
+        {
+            Logger::getInstance().log("readFileContent", "Failed to open file.");
         }
         return value;
     }
 
     string handleFlushCommand() {
+        Logger::getInstance().log("handleFlushCommand", "Executing Flush command");
+
         executeSSD("F", "", "");
         return verifyExecution("[Flush] Done", "[Flush] Error");
     }
@@ -121,6 +142,9 @@ private:
     string handleEraseCommand(istringstream& stream) {
         string startLba;
         stream >> startLba;
+
+        Logger::getInstance().log("handleEraseCommand", "Starting erase command for LBA: " + startLba);
+
         validateLBA(startLba);
         return performEraseCommand(stream, startLba);
     }
@@ -128,6 +152,9 @@ private:
     string handleEraseRangeCommand(istringstream& stream) {
         string startLba, endLba;
         stream >> startLba >> endLba;
+
+        Logger::getInstance().log("handleEraseRangeCommand", "Starting erase range command: " + startLba + " to " + endLba);
+
         validateLBA(startLba);
         validateLBA(endLba);
         return performEraseRangeCommand(startLba, endLba);
@@ -136,6 +163,9 @@ private:
     string handleWriteCommand(istringstream& stream) {
         string lbaString, writeValue;
         stream >> lbaString >> writeValue;
+
+        Logger::getInstance().log("handleWriteCommand", "Writing value: " + writeValue + " at LBA: " + lbaString);
+
         validateLBA(lbaString);
         validateValue(writeValue);
 
@@ -146,6 +176,9 @@ private:
     string handleReadCommand(istringstream& stream) {
         string lbaString;
         stream >> lbaString;
+
+        Logger::getInstance().log("handleReadCommand", "Reading from LBA: " + lbaString);
+
         validateLBA(lbaString);
 
         executeSSD("R", lbaString, "");
@@ -155,12 +188,16 @@ private:
     }
 
     string getHelpInfo() const {
+        Logger::getInstance().log("getHelpInfo", "Providing help information.");
         return "Team Name : ChillCode\n Member : Oh, Seo, Kang, Lim\n";
     }
 
     string handleFullWriteCommand(istringstream& stream) {
         string writeValue;
         stream >> writeValue;
+
+        Logger::getInstance().log("handleFullWriteCommand", "Full Write Command with value: " + writeValue);
+
         validateValue(writeValue);
         int startLba = 0;
         int endLba = 99;
@@ -177,6 +214,8 @@ private:
     }
 
     string handleFullReadCommand() {
+        Logger::getInstance().log("handleFullReadCommand", "Executing Full Read Command");
+
         int startLba = 0;
         int endLba = 99;
 
@@ -196,14 +235,18 @@ private:
     string verifyExecution(const string& successMessage, const string& errorMessage) {
         string value = readFile();
         if (value == "ERROR") {
+            Logger::getInstance().log("verifyExecution", errorMessage);
             return errorMessage;
         }
+        Logger::getInstance().log("verifyExecution", successMessage);
         return successMessage;
     }
 
     string performEraseCommand(istringstream& stream, const string& startLba) {
         string sizeInString;
         stream >> sizeInString;
+
+        Logger::getInstance().log("performEraseCommand", "Performing erase command with start LBA: " + startLba + ", size: " + sizeInString);
 
         int maxLba = 99;
         int size = stoi(sizeInString);
@@ -214,6 +257,8 @@ private:
     }
 
     string executeEraseByChunks(int& lba, int& size, int maxLba, int chunkSize) {
+        Logger::getInstance().log("executeEraseByChunks", "Executing erase in chunks.");
+
         while (size > 0 && lba <= maxLba) {
             int currentChunkSize;
 
@@ -228,9 +273,12 @@ private:
                 currentChunkSize = maxLba - lba + 1;
             }
 
+            Logger::getInstance().log("executeEraseByChunks", "Erasing from LBA: " + to_string(lba) + ", size: " + to_string(currentChunkSize));
+
             executeSSD("E", to_string(lba), to_string(currentChunkSize));
             string value = readFile();
             if (value == "ERROR") {
+                Logger::getInstance().log("executeEraseByChunks", "Erase command failed.");
                 return "[Erase] Error";
             }
 
@@ -238,10 +286,13 @@ private:
             size -= currentChunkSize;
         }
 
+        Logger::getInstance().log("executeEraseByChunks", "Erase command completed successfully.");
         return "[Erase] Done";
     }
 
     string performEraseRangeCommand(const string& startLba, const string& endLba) {
+        Logger::getInstance().log("performEraseRangeCommand", "Performing erase range from LBA: " + startLba + " to " + endLba);
+
         int size = stoi(endLba) - stoi(startLba) + 1;
         std::istringstream eraseStream(startLba + " " + to_string(size));
         return handleEraseCommand(eraseStream);
@@ -256,6 +307,7 @@ private:
     }
 
     bool runCommandAndWait(const string& exe, const string& args) {
+        Logger::getInstance().log("runCommandAndWait", "Running command: " + exe + " " + args);
         string fullPath = exe + " " + args;
 
         STARTUPINFOA si = { sizeof(si) };
@@ -267,6 +319,7 @@ private:
             NULL, NULL, FALSE,
             0, NULL, NULL,
             &si, &pi)) {
+            Logger::getInstance().log("runCommandAndWait", "Failed to create process for: " + fullPath);
             return false;
         }
 
@@ -274,6 +327,8 @@ private:
 
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
+
+        Logger::getInstance().log("runCommandAndWait", "Process completed successfully.");
         return true;
     }
 
