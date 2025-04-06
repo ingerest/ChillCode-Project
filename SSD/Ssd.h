@@ -15,11 +15,6 @@ class Ssd : public ISsdApi
 public:
 	Ssd();
 
-	bool excuteCommand(string commandLine);
-private:
-	string m_ssdNandPath;
-	string m_ssdOutputPath;
-
-	
+	bool excuteCommand(string commandLine);	
 };
 

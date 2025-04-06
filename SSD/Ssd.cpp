@@ -4,8 +4,6 @@
 
 Ssd::Ssd()
 {
-	m_ssdNandPath = SSD_NAND_PATH;
-	m_ssdOutputPath = SSD_OUTPUT_PATH;
 };
 
 bool Ssd::excuteCommand(string commandLine)
