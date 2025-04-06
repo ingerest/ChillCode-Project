@@ -21,7 +21,7 @@ private:
 	void getFileList(void);
 	void reorderCommandBufferAndStore(void);
 	void resetCommandBuffer(void);
-	vector<string> splitString(const string& str, char delimiter);
+	vector<string> splitStringWithDelimiter(const string& str, char delimiter);
 
 	vector<string> m_dafaultFileName
 		= { "1_empty", "2_empty", "3_empty" , "4_empty" , "5_empty" };

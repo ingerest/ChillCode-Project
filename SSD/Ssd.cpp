@@ -22,7 +22,7 @@ bool Ssd::excuteCommand(string commandLine)
     // check command buffer : count/status
     CommandBuffer::getInstance()->checkCommandBuffer();
     
-	if (false == pCommand->checkVaildParameter(commandLine, m_ssdOutputPath, m_ssdNandPath))
+	if (false == pCommand->checkVaildParameter(commandLine))
 	{
 		return false;
 	}
@@ -31,7 +31,7 @@ bool Ssd::excuteCommand(string commandLine)
 	{
 		if (false == CommandBuffer::getInstance()->checkCacheHit(pCommand.get()))
 		{
-			return pCommand->excuteCommand(commandLine, m_ssdOutputPath, m_ssdNandPath);
+			return pCommand->excuteCommand(commandLine);
 		}
 		else
 		{

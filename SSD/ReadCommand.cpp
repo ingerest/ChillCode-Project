@@ -1,11 +1,12 @@
 #include "ReadCommand.h"
+#include "FilePathConfig.h"
 
 
 void ReadCommand::readLba(void)
 {
     string tempStr;
     uint32_t index = 0;
-    ifstream nandFile(m_commandParameter.WriteFile);
+    ifstream nandFile(SSD_NAND_PATH);
     vector<string> lbaData;
     while (1)
     {
@@ -23,39 +24,20 @@ void ReadCommand::readLba(void)
         index++;
     }
 
-    ofstream ouputFile(m_commandParameter.OutputFile);
+    ofstream ouputFile(SSD_OUTPUT_PATH);
     ouputFile << lbaData[1];
     ouputFile.close();
 }
 
-
-bool ReadCommand::parseCommandLine(string commandLine)
+bool ReadCommand::checkValidCmd(size_t cmdParamCount)
 {
-    vector<string> cmdLine = splitString(commandLine);
-
-    if (cmdLine.size() > MAX_READ_PARAM_COUNT)  return false;
-    m_commandParameter.lba = cmdLine[1];
-    m_commandParameter.data = "";
-
-    return true;
+    return (cmdParamCount > MAX_READ_PARAM_COUNT);
 }
 
-
-bool ReadCommand::excuteCommand(string commandLine, string OutputFile, string WriteFile)
-{    
+bool ReadCommand::excuteCommand(string commandLine)
+{
     readLba();
 
-    return true;
-}
-
-bool ReadCommand::checkVaildParameter(string commandLine, string OutputFile, string WriteFile)
-{
-    if (false == parseCommandLine(commandLine)) return false;
-
-    m_commandParameter.OutputFile = OutputFile;
-    m_commandParameter.WriteFile = WriteFile;
-
-    if (false == checkVaildParameterAndStr2I()) return false;
     return true;
 }
 

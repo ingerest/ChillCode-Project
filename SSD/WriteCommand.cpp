@@ -1,45 +1,60 @@
 #include "WriteCommand.h"
+#include "FilePathConfig.h"
+#include <algorithm>
 
-bool WriteCommand::parseCommandLine(string commandLine)
+bool WriteCommand::excuteCommand(string commandLine)
 {
-    vector<string> cmdLine = splitString(commandLine);
-
-    if (cmdLine.size() > MAX_WRITE_PARAM_COUNT)  return false;
-    m_commandParameter.lba = cmdLine[1];
-    m_commandParameter.data = cmdLine[2];
-
-    return true;
-}
-
-bool WriteCommand::excuteCommand(string commandLine, string OutputFile, string WriteFile)
-{
-    if (false == parseCommandLine(commandLine)) return false;
-
-    m_commandParameter.OutputFile = OutputFile;
-    m_commandParameter.WriteFile = WriteFile;
-
-    if (false == checkVaildParameterAndStr2I()) return false;
+    parseCmdLine(commandLine);
 
     writeLba();
 
     return true;
 }
 
-bool WriteCommand::checkVaildParameter(string commandLine, string OutputFile, string WriteFile)
+bool WriteCommand::checkValidCmd(size_t cmdParamCount)
 {
-    if (false == parseCommandLine(commandLine)) return false;
+	return (cmdParamCount > MAX_WRITE_PARAM_COUNT);
+}
 
-    m_commandParameter.OutputFile = OutputFile;
-    m_commandParameter.WriteFile = WriteFile;
+bool WriteCommand::checkVaildParameterAndStr2I(void)
+{
+    if (false == Command::checkVaildParameterAndStr2I()) return false;
 
-    if (false == checkVaildParameterAndStr2I()) return false;
+    if (m_commandParameter.data == "") return false;
 
+    if ((m_commandParameter.data.size() != MAX_DATA_LENGTH)
+        || !((m_commandParameter.data[0] == '0') && (m_commandParameter.data[1] == 'x')))
+    {
+        return false;
+    }
+    string toData = m_commandParameter.data;
+    toData.erase(0, 2);
+
+    transform(toData.begin(), toData.end(), toData.begin(), ::toupper);
+
+    for (char each : toData)
+    {
+        if (each > '9' || each < '0')
+        {
+            if (each > 'F' || each < 'A')
+            {
+                return false;
+            }
+        }
+    }
+
+    m_commandParameter.data = "0x" + toData;
+    size_t pos;
+    auto aData = stoul(toData, &pos, 16);
+
+    m_commandParameter.nData = static_cast<uint32_t>(aData);;
+    
     return true;
 }
 
 void WriteCommand::writeLba(void)
 {
-    ifstream fileIn(m_commandParameter.WriteFile);
+    ifstream fileIn(SSD_NAND_PATH);
     vector<string> lines;
     string line;
 
@@ -51,7 +66,7 @@ void WriteCommand::writeLba(void)
 
     lines[m_commandParameter.nLba] = (m_commandParameter.lba + " " + m_commandParameter.data);
 
-    ofstream fileOut(m_commandParameter.WriteFile);
+    ofstream fileOut(SSD_NAND_PATH);
     for (const auto& l : lines) {
         fileOut << l << "\n";
     }

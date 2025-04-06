@@ -54,7 +54,7 @@ void CommandBuffer::getFileList(void)
 			m_currentFileName.push_back(fileName);
 			if (fileName.erase(0,1) != "_empty")
 			{
-				vector<string>vCommand = splitString(fileName, '_');
+				vector<string>vCommand = splitStringWithDelimiter(fileName, '_');
 				
 				if (vCommand[1] == "E")
 				{
@@ -69,6 +69,8 @@ void CommandBuffer::getFileList(void)
 				{
 					m_writeBitmap.setBit(stoi(vCommand[2]));
 				}
+				else continue;
+
 				m_validCommandCount++;
 			}
 		}
@@ -87,7 +89,7 @@ void CommandBuffer::reorderCommandBufferAndStore(void)
 	
 	lastCommand.erase(0, 2);
 
-	vector<string>vCommand = splitString(lastCommand, '_');
+	vector<string>vCommand = splitStringWithDelimiter(lastCommand, '_');
 
 	if (vCommand[0] == "W")
 	{
@@ -97,7 +99,7 @@ void CommandBuffer::reorderCommandBufferAndStore(void)
 			uint32_t validCommandCount = m_validCommandCount - 1;
 			for (uint32_t index = 0; index < validCommandCount; index++)
 			{
-				vector<string>targetCommand = splitString(changedFileName[index], '_');
+				vector<string>targetCommand = splitStringWithDelimiter(changedFileName[index], '_');
 				if ((targetCommand[1] == "W") && (targetCommand[2] == vCommand[1]))
 				{
 					changedFileName.erase(changedFileName.begin() + index);
@@ -123,7 +125,7 @@ void CommandBuffer::reorderCommandBufferAndStore(void)
 				uint32_t validCommandCount = m_validCommandCount - 1;
 				for (uint32_t index = 0; index < validCommandCount; index++)
 				{
-					vector<string>targetCommand = splitString(changedFileName[index], '_');
+					vector<string>targetCommand = splitStringWithDelimiter(changedFileName[index], '_');
 					if ((targetCommand[1] == "W") && (targetCommand[2] == to_string(indexLba)))
 					{
 						changedFileName.erase(changedFileName.begin() + index);
@@ -138,7 +140,7 @@ void CommandBuffer::reorderCommandBufferAndStore(void)
 
 		for (int32_t index = m_validCommandCount - 2 ; index >=  0; index--)
 		{
-			vector<string>targetCommand = splitString(changedFileName[index], '_');
+			vector<string>targetCommand = splitStringWithDelimiter(changedFileName[index], '_');
 			if (targetCommand[1] == "E")
 			{
 				uint32_t nTagetStartLba = stoi(targetCommand[2]);
@@ -191,7 +193,7 @@ void CommandBuffer::reorderCommandBufferAndStore(void)
 
 	for (uint32_t index = 0; index < m_validCommandCount; index++)
 	{
-		vector<string>targetCommand = splitString(changedFileName[index], '_');
+		vector<string>targetCommand = splitStringWithDelimiter(changedFileName[index], '_');
 
 		if ((index + 1) != stoi(targetCommand[0]))
 		{
@@ -249,7 +251,7 @@ bool CommandBuffer::checkCacheHit(Command* pCommand)
 	{
 		for (uint32_t index = 0; index < m_validCommandCount; index++)
 		{
-			vector<string>vCommand = splitString(m_currentFileName[index], '_');
+			vector<string>vCommand = splitStringWithDelimiter(m_currentFileName[index], '_');
 
 			if ((vCommand[1] == "W") && (vCommand[2] == to_string(nLBA)))
 			{
@@ -282,7 +284,7 @@ void CommandBuffer::triggerCommandProcessing(void)
 
 		string commandType = cmdLine.substr(0, 1);
 		replace(cmdLine.begin(), cmdLine.end(), '_', ' ');
-		CommandFactory::getInstance()->getCommandObjct(commandType)->excuteCommand(cmdLine, "../Release/ssd_output.txt", "ssd_nand.txt");
+		CommandFactory::getInstance()->getCommandObjct(commandType)->excuteCommand(cmdLine);
 	}
 
 	resetCommandBuffer();
@@ -302,7 +304,7 @@ void CommandBuffer::addCommandToBuffer(vector<string> cmdLine)
 }
 
 
-vector<string> CommandBuffer::splitString(const string& str, char delimiter) 
+vector<string> CommandBuffer::splitStringWithDelimiter(const string& str, char delimiter)
 {
 	vector<string> result;
 	stringstream ss(str);

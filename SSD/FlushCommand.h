@@ -7,8 +7,8 @@ class FlushCommand : public Command
 {
 public:
 	string cmdName = "F";
-	bool excuteCommand(string commandLine, string OutputFile, string WriteFile);
-	bool checkVaildParameter(string commandLine, string OutputFile, string WriteFile);
+	bool excuteCommand(string commandLine);
+	bool checkVaildParameter(string commandLine);
 private:
-	bool parseCommandLine(string commandLine);
+	bool parseCmdLineAndCheckValidCmd(string commandLine);
 };

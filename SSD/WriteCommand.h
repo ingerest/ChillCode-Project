@@ -7,10 +7,12 @@ class WriteCommand : public Command
 {
 public:
 	string cmdName = "W";
-	bool excuteCommand(string commandLine, string OutputFile, string WriteFile);
-	bool checkVaildParameter(string commandLine, string OutputFile, string WriteFile);
+	bool excuteCommand(string commandLine);
 private:
+	bool checkVaildParameterAndStr2I(void);
 	void writeLba(void);
-	bool parseCommandLine(string commandLine);
+	bool isNeedData(void) { return true; }
+	bool checkValidCmd(size_t cmdParamCount);
 	const uint32_t MAX_WRITE_PARAM_COUNT = 3;
+	const uint32_t MAX_DATA_LENGTH = 10;
 };
