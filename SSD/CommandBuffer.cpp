@@ -8,6 +8,16 @@ using namespace std;
 
 namespace fs = std::filesystem;
 
+CommandBuffer* CommandBuffer::m_instance = nullptr;
+
+CommandBuffer* CommandBuffer::getInstance(void)
+{
+	if (m_instance == nullptr) {
+		m_instance = new CommandBuffer();
+	}
+	return m_instance;
+}
+
 CommandBuffer::CommandBuffer()
 {
 	m_folderPath = COMMAND_BUFFER_PATH;

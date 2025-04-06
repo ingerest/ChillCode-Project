@@ -2,9 +2,6 @@
 #include "CommandFactory.h"
 #include "CommandBuffer.h"
 
-
-CommandBuffer cmdBuffer;
-
 Ssd::Ssd()
 {
 	m_ssdNandPath = SSD_NAND_PATH;
@@ -23,7 +20,7 @@ bool Ssd::excuteCommand(string commandLine)
     if (pCommand == nullptr) return false;
 
     // check command buffer : count/status
-    cmdBuffer.checkCommandBuffer();
+    CommandBuffer::getInstance()->checkCommandBuffer();
     
 	if (false == pCommand->checkVaildParameter(commandLine, m_ssdOutputPath, m_ssdNandPath))
 	{
@@ -32,7 +29,7 @@ bool Ssd::excuteCommand(string commandLine)
 
 	if (command == "R")
 	{
-		if (false == cmdBuffer.checkCacheHit(pCommand.get()))
+		if (false == CommandBuffer::getInstance()->checkCacheHit(pCommand.get()))
 		{
 			return pCommand->excuteCommand(commandLine, m_ssdOutputPath, m_ssdNandPath);
 		}
@@ -42,12 +39,12 @@ bool Ssd::excuteCommand(string commandLine)
 		}
 	}
 	
-	if (cmdBuffer.isFullCommandBuffer() || (command == "F"))
+	if (CommandBuffer::getInstance()->isFullCommandBuffer() || (command == "F"))
 	{
-		cmdBuffer.triggerCommandProcessing();
+		CommandBuffer::getInstance()->triggerCommandProcessing();
 	}
 
-	if (command != "F") cmdBuffer.addCommandToBuffer(cmdLine);
+	if (command != "F") CommandBuffer::getInstance()->addCommandToBuffer(cmdLine);
     
     return true;
 
