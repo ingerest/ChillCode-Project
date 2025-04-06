@@ -50,7 +50,7 @@ public:
     }
 
 private:
-    static const int START_LBA = 99;
+    static const int START_LBA = 0;
     static const int END_LBA = 99;
     static const int UNMAP_CHUNK_SIZE = 10;
     static const int INPUT_ARRAY_SIZE = 100;
@@ -417,15 +417,15 @@ private:
     };
 
     string handle1_FullWriteAndReadCompareCommand() {
-        string inputs[100];
+        string inputs[INPUT_ARRAY_SIZE];
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < INPUT_ARRAY_SIZE; i++) {
             inputs[i] = intToHexString(i);
             writeScriptSubCommand(i, inputs[i]);
 
-            if (i % 5 != 4) continue;
+            if (i % COMPARE_BATCH_SIZE != 4) continue;
 
-            for (int j = 0; j < 5; j++) {
+            for (int j = 0; j < COMPARE_BATCH_SIZE; j++) {
                 int idx = i - 4 + j;
                 if (readCompare(idx, inputs[idx]) == false) {
                     return "FAIL";
@@ -437,9 +437,9 @@ private:
     }
 
     string handle2_PartialLBACommand() {
-        string inputs[30];
+        string inputs[PARTIAL_LBA_LIMIT];
 
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < PARTIAL_LBA_LIMIT; i++) {
             inputs[i] = intToHexString(i);
             writeScriptSubCommand(4, inputs[i]);
             writeScriptSubCommand(0, inputs[i]);
@@ -447,7 +447,7 @@ private:
             writeScriptSubCommand(1, inputs[i]);
             writeScriptSubCommand(2, inputs[i]);
 
-            for (int j = 0; j < 5; j++) {
+            for (int j = 0; j < COMPARE_BATCH_SIZE; j++) {
                 int idx = j;
                 if (readCompare(idx, inputs[i]) == false) {
                     return "FAIL";
@@ -460,7 +460,7 @@ private:
     string handle3_WriteReadAgingCommand() {
         string inputs[200];
 
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < PARTIAL_LBA_LIMIT; i++) {
             inputs[i] = unsignedIntToHexString(generateRandomHex());
             writeScriptSubCommand(0, inputs[i]);
             writeScriptSubCommand(99, inputs[i]);
@@ -487,7 +487,7 @@ private:
 
         string inputs[2];
 
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < PARTIAL_LBA_LIMIT; i++) {
 
             for (int j = 2; j < 99; j += 2) {
                 inputs[0] = unsignedIntToHexString(generateRandomHex());
@@ -495,7 +495,7 @@ private:
 
                 if (writeScriptSubCommand(j, inputs[0]) == false) return "FAIL";
                 if (writeScriptSubCommand(j, inputs[1]) == false) return "FAIL";
-                if (eraseRangeScriptSubCommand(j, (((j + 2) < 100) ? (j + 2) : 99)) == false) return "FAIL";
+                if (eraseRangeScriptSubCommand(j, (((j + 2) < INPUT_ARRAY_SIZE) ? (j + 2) : 99)) == false) return "FAIL";
             }
         }
         return "PASS";
