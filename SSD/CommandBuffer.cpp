@@ -21,6 +21,21 @@ CommandBuffer::CommandBuffer()
 
 void CommandBuffer::getFileList(void)
 {
+	string commandBufferPath = m_folderPath;
+	commandBufferPath.pop_back();
+
+	if (!fs::exists(commandBufferPath))
+	{
+		fs::create_directories(commandBufferPath);
+		for (string defaultFilename : m_dafaultFileName)
+		{
+			string filePath = m_folderPath + defaultFilename;
+			ofstream file(filePath);
+			file.close();
+		}
+	}
+
+
 	m_currentFileName.clear();
 	m_validCommandCount = 0;
 	for (const auto& entry : fs::directory_iterator(m_folderPath))
