@@ -50,6 +50,13 @@ public:
     }
 
 private:
+    static const int START_LBA = 99;
+    static const int END_LBA = 99;
+    static const int UNMAP_CHUNK_SIZE = 10;
+    static const int INPUT_ARRAY_SIZE = 100;
+    static const int PARTIAL_LBA_LIMIT = 30;
+    static const int COMPARE_BATCH_SIZE = 5;
+
     string processCommand(const string& userInput) {
         Logger::getInstance().log("processCommand", "Processing command: " + userInput);
         string command;
@@ -199,10 +206,8 @@ private:
         Logger::getInstance().log("handleFullWriteCommand", "Full Write Command with value: " + writeValue);
 
         validateValue(writeValue);
-        int startLba = 0;
-        int endLba = 99;
 
-        for (int lba = startLba; lba <= endLba; ++lba) {
+        for (int lba = START_LBA; lba <= END_LBA; ++lba) {
             executeSSD("W", to_string(lba), writeValue);
             string readOutput = readFile();
             if (readOutput == "ERROR") {
@@ -216,11 +221,8 @@ private:
     string handleFullReadCommand() {
         Logger::getInstance().log("handleFullReadCommand", "Executing Full Read Command");
 
-        int startLba = 0;
-        int endLba = 99;
-
         string result;
-        for (int lba = startLba; lba <= endLba; ++lba) {
+        for (int lba = START_LBA; lba <= END_LBA; ++lba) {
             result += handleReadCommandForLba(lba) + "\n";
         }
 
@@ -248,12 +250,10 @@ private:
 
         Logger::getInstance().log("performEraseCommand", "Performing erase command with start LBA: " + startLba + ", size: " + sizeInString);
 
-        int maxLba = 99;
         int size = stoi(sizeInString);
         int lba = stoi(startLba);
-        int chunkSize = 10;
 
-        return executeEraseByChunks(lba, size, maxLba, chunkSize);
+        return executeEraseByChunks(lba, size, END_LBA, UNMAP_CHUNK_SIZE);
     }
 
     string executeEraseByChunks(int& lba, int& size, int maxLba, int chunkSize) {
@@ -334,7 +334,7 @@ private:
 
     void validateLBA(std::string lba) {
         int num = std::stoi(lba);
-        if (num < 0 || num > 99)
+        if (num < START_LBA || num > END_LBA)
         {
             throw invalid_argument("");
         }
