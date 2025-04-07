@@ -63,6 +63,15 @@ void EraseCommand::eraseLba(void)
     fileOut.close();
 }
 
+size_t EraseCommand::parseCmdLine(string commandLine)
+{
+    Command::parseCmdLine(commandLine); 
+    m_commandParameter.nLba = stoi(m_commandParameter.lba);
+    m_commandParameter.nData = stoi(m_commandParameter.data);
+
+    return size_t();
+}
+
 bool EraseCommand::checkValidCmd(size_t cmdParamCount)
 {
     return (cmdParamCount <= MAX_ERASE_PARAM_COUNT);

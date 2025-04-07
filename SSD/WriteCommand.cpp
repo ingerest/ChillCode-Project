@@ -16,6 +16,17 @@ bool WriteCommand::checkValidCmd(size_t cmdParamCount)
     return (cmdParamCount <= MAX_WRITE_PARAM_COUNT);
 }
 
+size_t WriteCommand::parseCmdLine(string commandLine)
+{
+    Command::parseCmdLine(commandLine);
+    string toData = m_commandParameter.data;
+    toData.erase(0, 2);
+
+    m_commandParameter.nLba = stoi(m_commandParameter.lba);
+    m_commandParameter.nData = stoi(toData);
+    return size_t();
+}
+
 bool WriteCommand::checkVaildParameterAndStr2I(void)
 {
     if (false == Command::checkVaildParameterAndStr2I()) return false;
