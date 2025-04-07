@@ -11,6 +11,7 @@
 #include <io.h>
 #include <filesystem>
 #include <random>
+#include <algorithm>
 
 #include "Logger.cpp"
 
@@ -32,227 +33,184 @@ public:
 
     virtual void executeSSD(const string& command, const string& lba, const string& value) {
         Logger::getInstance().log("executeSSD", "Application started");
-
-        string fullCommand = command;
-
-        if (command != "F")
-        {
-            fullCommand += " " + lba;
-        }
-
-        if (command == "W" || command == "E") {
-            fullCommand += " " + value;
-        }
+        string fullCommand = constructCommand(command, lba, value);
 
         string exePath = "../Release";
         SetCurrentDirectory(exePath.c_str());
 
-        if (runCommandAndWait("ssd.exe", fullCommand) == false)
-        {
-            throw invalid_argument("INVALID COMMAND");
+        if (!runCommandAndWait("ssd.exe", fullCommand)) {
+            Logger::getInstance().log("executeSSD", "runCommandAndWait Failed.");
+            throw invalid_argument("");
         }
+        Logger::getInstance().log("executeSSD", "Command executed successfully: " + fullCommand);
     }
 
     virtual string readFile() {
-        string filePath = "../Release/ssd_output.txt";
-        ifstream file(filePath);
-
-        string line;
-        string value;
-
-        if (file.is_open()) {
-            while (getline(file, line))
-            {
-                value = line.c_str();
-            }
-            file.close();
-        }
-
-        return value;
+        return readFileContent("../Release/ssd_output.txt");
     }
 
 private:
+    static const int START_LBA = 0;
+    static const int END_LBA = 99;
+    static const int UNMAP_CHUNK_SIZE = 10;
+    static const int INPUT_ARRAY_SIZE = 100;
+    static const int PARTIAL_LBA_LIMIT = 30;
+    static const int COMPARE_BATCH_SIZE = 5;
+
     string processCommand(const string& userInput) {
+        Logger::getInstance().log("processCommand", "Processing command: " + userInput);
         string command;
         istringstream stream(userInput);
         stream >> command;
 
-        if (command == "read")
+        return executeCommand(command, stream);
+    }
+
+    string executeCommand(const string& command, istringstream& stream) {
+        Logger::getInstance().log("executeCommand", "Executing command: " + command);
+
+        if (command == "read") return handleReadCommand(stream);
+        if (command == "write") return handleWriteCommand(stream);
+        if (command == "exit") return "[exit] Done";
+        if (command == "help") return getHelpInfo();
+        if (command == "fullwrite") return handleFullWriteCommand(stream);
+        if (command == "fullread") return handleFullReadCommand();
+        if (command == "erase") return handleEraseCommand(stream);
+        if (command == "erase_range") return handleEraseRangeCommand(stream);
+        if (command == "flush") return handleFlushCommand();
+        if (isTestScriptCommand(command)) return handleTestScriptCommand(command);
+
+        // Need Double Check
+        int result = handleRunnerCommand(command);
+        if (result == -1)
         {
-            return handleReadCommand(stream);
+            Logger::getInstance().log("executeCommand", "INVALID COMMAND: " + command);
+            throw invalid_argument("INVALID COMMAND");
         }
-        else if (command == "write")
-        {
-            return handleWriteCommand(stream);
-        }
-        else if (command == "exit") {
-            return "[exit] Done";
-        }
-        else if (command == "help") {
-            return getHelpInfo();
-        }
-        else if (command == "fullwrite") {
-            return handleFullWriteCommand(stream);
-        }
-        else if (command == "fullread") {
-            return handleFullReadCommand();
-        }
-        else if (command == "erase") {
-            return handleEraseCommand(stream);
-        }
-        else if (command == "erase_range") {
-            return handleEraseRangeCommand(stream);
-        }
-        else if (command == "flush") {
-            return handleFlushCommand();
-        }
-        // Test Script
-        else if (command == "1_FullWriteAndReadCompare" || command == "1_") {
+
+        return "";
+    }
+
+    bool isTestScriptCommand(const string& command) {
+        return command == "1_FullWriteAndReadCompare" || command == "1_" ||
+            command == "2_PartialLBAWrite" || command == "2_" ||
+            command == "3_WriteReadAging" || command == "3_" ||
+            command == "4_EraseAndWriteAging" || command == "4_";
+    }
+
+    string handleTestScriptCommand(const string& command) {
+        Logger::getInstance().log("handleTestScriptCommand", "Handling test script command: " + command);
+
+        if (command == "1_FullWriteAndReadCompare" || command == "1_")
             return handle1_FullWriteAndReadCompareCommand();
-        }
-        else if (command == "2_PartialLBAWrite" || command == "2_") {
+        if (command == "2_PartialLBAWrite" || command == "2_")
             return handle2_PartialLBACommand();
-        }
-        else if (command == "3_WriteReadAging" || command == "3_") {
+        if (command == "3_WriteReadAging" || command == "3_")
             return handle3_WriteReadAgingCommand();
-        }
-        else if (command == "4_EraseAndWriteAging" || command == "4_") {
+        if (command == "4_EraseAndWriteAging" || command == "4_")
             return handle4_EraseAndWriteAgingCommand();
-        }
-        else {
-            int res = handleRunnerCommand(command);
-            if (res == -1) throw invalid_argument("INVALID COMMAND");
-        }
+
+        Logger::getInstance().log("handleTestScriptCommand", "Test script command not recognized: " + command);
+        return "INVALID COMMAND";
     }
 
-    const std::string& handleFlushCommand()
-    {
-        executeSSD("F", "", "");
+    string constructCommand(const string& command, const string& lba, const string& value) {
+        string fullCommand = command;
+        if (command != "F") fullCommand += " " + lba;
+        if (command == "W" || command == "E") fullCommand += " " + value;
+        return fullCommand;
+    }
 
-        string value = readFile();
-        if (value == "ERROR")
+    string readFileContent(const string& filePath) {
+        Logger::getInstance().log("readFileContent", "Reading file: " + filePath);
+
+        ifstream file(filePath);
+        string line, value;
+        if (file.is_open()) {
+            while (getline(file, line)) value = line.c_str();
+            file.close();
+
+            Logger::getInstance().log("readFileContent", "File read successfully.");
+        }
+        else
         {
-            return "[Flush] Error";
+            Logger::getInstance().log("readFileContent", "Failed to open file.");
         }
-
-        return "[Flush] Done";
+        return value;
     }
 
-    string handleEraseCommand(std::istringstream& stream)
-    {
-        string startLba;
-        stream >> startLba;
-        validateLBA(startLba);
+    string handleFlushCommand() {
+        Logger::getInstance().log("handleFlushCommand", "Executing Flush command");
 
-        string sizeInString;
-        stream >> sizeInString;
-
-        int maxLba = 99;
-        int size = stoi(sizeInString);
-        int lba = stoi(startLba);
-        int chunkSize = 10;
-
-        while (size > 0 && lba <= maxLba) {
-            int currentChunkSize;
-            if (size > chunkSize) {
-                currentChunkSize = chunkSize;
-            }
-            else {
-                currentChunkSize = size;
-            }
-
-            if (lba + currentChunkSize - 1 > maxLba)
-            {
-                currentChunkSize = maxLba - lba + 1;
-            }
-
-            executeSSD("E", to_string(lba), to_string(currentChunkSize));
-
-            string value = readFile();
-            if (value == "ERROR")
-            {
-                return "[Erase] Error";
-            }
-
-            lba += currentChunkSize;
-            size -= currentChunkSize;
-        }
-
-        return "[Erase] Done";
+        executeSSD("F", "", "");
+        return verifyExecution("[Flush] Done", "[Flush] Error");
     }
 
-    string handleEraseRangeCommand(std::istringstream& stream)
-    {
+    string handleEraseCommand(istringstream& stream) {
         string startLba;
         stream >> startLba;
-        validateLBA(startLba);
 
-        string endLba;
-        stream >> endLba;
+        Logger::getInstance().log("handleEraseCommand", "Starting erase command for LBA: " + startLba);
+
+        validateLBA(startLba);
+        return performEraseCommand(stream, startLba);
+    }
+
+    string handleEraseRangeCommand(istringstream& stream) {
+        string startLba, endLba;
+        stream >> startLba >> endLba;
+
+        Logger::getInstance().log("handleEraseRangeCommand", "Starting erase range command: " + startLba + " to " + endLba);
+
+        validateLBA(startLba);
         validateLBA(endLba);
-
-        int size = stoi(endLba) - stoi(startLba) + 1;
-        std::istringstream eraseStream(startLba + " " + to_string(size));
-
-        return handleEraseCommand(eraseStream);
+        return performEraseRangeCommand(startLba, endLba);
     }
 
-    string handleWriteCommand(std::istringstream& stream)
-    {
-        string lbaString;
-        stream >> lbaString;
-        validateLBA(lbaString);
+    string handleWriteCommand(istringstream& stream) {
+        string lbaString, writeValue;
+        stream >> lbaString >> writeValue;
 
-        string writeValue;
-        stream >> writeValue;
+        Logger::getInstance().log("handleWriteCommand", "Writing value: " + writeValue + " at LBA: " + lbaString);
+
+        validateLBA(lbaString);
         validateValue(writeValue);
 
         executeSSD("W", lbaString, writeValue);
-
-        string value = readFile();
-        if (value == "ERROR")
-        {
-            return "[Write] Error";
-        }
-
-        return "[Write] Done";
+        return verifyExecution("[Write] Done", "[Write] Error");
     }
 
-    string handleReadCommand(std::istringstream& stream)
-    {
+    string handleReadCommand(istringstream& stream) {
         string lbaString;
         stream >> lbaString;
+
+        Logger::getInstance().log("handleReadCommand", "Reading from LBA: " + lbaString);
+
         validateLBA(lbaString);
 
         executeSSD("R", lbaString, "");
-
         string readOutput = readFile();
-        if (readOutput == "ERROR")
-        {
-            return "[Read] Error";
-        }
 
-        string ret = formatReadResult(lbaString, readOutput);
-        return ret;
+        return (readOutput == "ERROR") ? "[Read] Error" : formatReadResult(lbaString, readOutput);
     }
 
     string getHelpInfo() const {
+        Logger::getInstance().log("getHelpInfo", "Providing help information.");
         return "Team Name : ChillCode\n Member : Oh, Seo, Kang, Lim\n";
     }
 
     string handleFullWriteCommand(istringstream& stream) {
         string writeValue;
         stream >> writeValue;
+
+        Logger::getInstance().log("handleFullWriteCommand", "Full Write Command with value: " + writeValue);
+
         validateValue(writeValue);
 
-        int startLba = 0;
-        int endLba = 99;
-
-        for (int lba = startLba; lba <= endLba; ++lba) {
+        for (int lba = START_LBA; lba <= END_LBA; ++lba) {
             executeSSD("W", to_string(lba), writeValue);
             string readOutput = readFile();
-            if (readOutput == "ERROR")
-            {
+            if (readOutput == "ERROR") {
                 return "[Fullwrite] Error";
             }
         }
@@ -261,19 +219,95 @@ private:
     }
 
     string handleFullReadCommand() {
-        int startLba = 0;
-        int endLba = 99;
+        Logger::getInstance().log("handleFullReadCommand", "Executing Full Read Command");
 
         string result;
-        for (int lba = startLba; lba <= endLba; ++lba) {
-            std::istringstream lbaStream(std::to_string(lba));
-            result += handleReadCommand(lbaStream) + "\n";
+        for (int lba = START_LBA; lba <= END_LBA; ++lba) {
+            result += handleReadCommandForLba(lba) + "\n";
         }
 
         return result;
     }
 
+    string handleReadCommandForLba(int lba) {
+        std::istringstream lbaStream(std::to_string(lba));
+        return handleReadCommand(lbaStream);
+    }
+
+    string verifyExecution(const string& successMessage, const string& errorMessage) {
+        string value = readFile();
+        if (value == "ERROR") {
+            Logger::getInstance().log("verifyExecution", errorMessage);
+            return errorMessage;
+        }
+        Logger::getInstance().log("verifyExecution", successMessage);
+        return successMessage;
+    }
+
+    string performEraseCommand(istringstream& stream, const string& startLba) {
+        string sizeInString;
+        stream >> sizeInString;
+
+        Logger::getInstance().log("performEraseCommand", "Performing erase command with start LBA: " + startLba + ", size: " + sizeInString);
+
+        int size = stoi(sizeInString);
+        int lba = stoi(startLba);
+
+        return executeEraseByChunks(lba, size, END_LBA, UNMAP_CHUNK_SIZE);
+    }
+
+    string executeEraseByChunks(int& lba, int& size, int maxLba, int chunkSize) {
+        Logger::getInstance().log("executeEraseByChunks", "Executing erase in chunks.");
+
+        while (size > 0 && lba <= maxLba) {
+            int currentChunkSize;
+
+            if (size < chunkSize) {
+                currentChunkSize = size;
+            }
+            else {
+                currentChunkSize = chunkSize;
+            }
+
+            if (lba + currentChunkSize - 1 > maxLba) {
+                currentChunkSize = maxLba - lba + 1;
+            }
+
+            Logger::getInstance().log("executeEraseByChunks", "Erasing from LBA: " + to_string(lba) + ", size: " + to_string(currentChunkSize));
+
+            executeSSD("E", to_string(lba), to_string(currentChunkSize));
+            string value = readFile();
+            if (value == "ERROR") {
+                Logger::getInstance().log("executeEraseByChunks", "Erase command failed.");
+                return "[Erase] Error";
+            }
+
+            lba += currentChunkSize;
+            size -= currentChunkSize;
+        }
+
+        Logger::getInstance().log("executeEraseByChunks", "Erase command completed successfully.");
+        return "[Erase] Done";
+    }
+
+    string performEraseRangeCommand(const string& startLba, const string& endLba) {
+        Logger::getInstance().log("performEraseRangeCommand", "Performing erase range from LBA: " + startLba + " to " + endLba);
+
+        int size = stoi(endLba) - stoi(startLba) + 1;
+        std::istringstream eraseStream(startLba + " " + to_string(size));
+        return handleEraseCommand(eraseStream);
+    }
+
+    string formatReadResult(const string& lba, const string& value) const {
+        std::ostringstream oss;
+        oss << "[Read] LBA "
+            << std::setw(2) << std::setfill('0') << lba
+            << " : " << value;
+        return oss.str();
+    }
+
     bool runCommandAndWait(const string& exe, const string& args) {
+        Logger::getInstance().log("runCommandAndWait", "Running command: " + exe + " " + args);
         string fullPath = exe + " " + args;
 
         STARTUPINFOA si = { sizeof(si) };
@@ -285,6 +319,7 @@ private:
             NULL, NULL, FALSE,
             0, NULL, NULL,
             &si, &pi)) {
+            Logger::getInstance().log("runCommandAndWait", "Failed to create process for: " + fullPath);
             return false;
         }
 
@@ -292,20 +327,14 @@ private:
 
         CloseHandle(pi.hProcess);
         CloseHandle(pi.hThread);
-        return true;
-    }
 
-    string formatReadResult(const string& lba, const string& value) const {
-        std::ostringstream oss;
-        oss << "[Read] LBA "
-            << std::setw(2) << std::setfill('0') << lba
-            << " : " << value;
-        return oss.str();
+        Logger::getInstance().log("runCommandAndWait", "Process completed successfully.");
+        return true;
     }
 
     void validateLBA(std::string lba) {
         int num = std::stoi(lba);
-        if (num < 0 || num > 99)
+        if (num < START_LBA || num > END_LBA)
         {
             throw invalid_argument("");
         }
@@ -388,15 +417,15 @@ private:
     };
 
     string handle1_FullWriteAndReadCompareCommand() {
-        string inputs[100];
+        string inputs[INPUT_ARRAY_SIZE];
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < INPUT_ARRAY_SIZE; i++) {
             inputs[i] = intToHexString(i);
             writeScriptSubCommand(i, inputs[i]);
 
-            if (i % 5 != 4) continue;
+            if (i % COMPARE_BATCH_SIZE != 4) continue;
 
-            for (int j = 0; j < 5; j++) {
+            for (int j = 0; j < COMPARE_BATCH_SIZE; j++) {
                 int idx = i - 4 + j;
                 if (readCompare(idx, inputs[idx]) == false) {
                     return "FAIL";
@@ -408,9 +437,9 @@ private:
     }
 
     string handle2_PartialLBACommand() {
-        string inputs[30];
+        string inputs[PARTIAL_LBA_LIMIT];
 
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < PARTIAL_LBA_LIMIT; i++) {
             inputs[i] = intToHexString(i);
             writeScriptSubCommand(4, inputs[i]);
             writeScriptSubCommand(0, inputs[i]);
@@ -418,7 +447,7 @@ private:
             writeScriptSubCommand(1, inputs[i]);
             writeScriptSubCommand(2, inputs[i]);
 
-            for (int j = 0; j < 5; j++) {
+            for (int j = 0; j < COMPARE_BATCH_SIZE; j++) {
                 int idx = j;
                 if (readCompare(idx, inputs[i]) == false) {
                     return "FAIL";
@@ -431,7 +460,7 @@ private:
     string handle3_WriteReadAgingCommand() {
         string inputs[200];
 
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < PARTIAL_LBA_LIMIT; i++) {
             inputs[i] = unsignedIntToHexString(generateRandomHex());
             writeScriptSubCommand(0, inputs[i]);
             writeScriptSubCommand(99, inputs[i]);
@@ -458,7 +487,7 @@ private:
 
         string inputs[2];
 
-        for (int i = 0; i < 30; i++) {
+        for (int i = 0; i < PARTIAL_LBA_LIMIT; i++) {
 
             for (int j = 2; j < 99; j += 2) {
                 inputs[0] = unsignedIntToHexString(generateRandomHex());
@@ -466,7 +495,7 @@ private:
 
                 if (writeScriptSubCommand(j, inputs[0]) == false) return "FAIL";
                 if (writeScriptSubCommand(j, inputs[1]) == false) return "FAIL";
-                if (eraseRangeScriptSubCommand(j, (((j + 2) < 100) ? (j + 2) : 99)) == false) return "FAIL";
+                if (eraseRangeScriptSubCommand(j, (((j + 2) < INPUT_ARRAY_SIZE) ? (j + 2) : 99)) == false) return "FAIL";
             }
         }
         return "PASS";
