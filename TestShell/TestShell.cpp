@@ -327,7 +327,7 @@ bool TestShell::validateValue(const std::string& value) {
         return false;
     }
 
-    return true
+    return true;
 }
 
 //////////////// SCRIPT ////////////////////////////
