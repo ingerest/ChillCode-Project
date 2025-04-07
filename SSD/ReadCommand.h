@@ -10,6 +10,7 @@ public:
 	bool excuteCommand(string commandLine);
 private:
 	void readLba(void);
+	bool isNeedData(void) { return false; }
 	bool checkValidCmd(size_t cmdParamCount);
 	const uint32_t MAX_READ_PARAM_COUNT = 2;
 };

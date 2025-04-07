@@ -65,5 +65,5 @@ void EraseCommand::eraseLba(void)
 
 bool EraseCommand::checkValidCmd(size_t cmdParamCount)
 {
-    return (cmdParamCount > MAX_ERASE_PARAM_COUNT);
+    return (cmdParamCount <= MAX_ERASE_PARAM_COUNT);
 }

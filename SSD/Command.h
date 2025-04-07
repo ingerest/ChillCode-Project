@@ -29,8 +29,8 @@ protected:
 	bool parseCmdLineAndCheckValidCmd(string commandLine);
 	bool checkVaildParameterAndStr2I(void);
 	bool updateErrorMsg2TextFile(void);
-	bool checkValidCmd(size_t cmdParamCount);
-	bool isNeedData(void) { return false;}
+	virtual bool checkValidCmd(size_t cmdParamCount) = 0;
+	virtual bool isNeedData(void) = 0;
 	size_t parseCmdLine(string commandLine);
 
 private:

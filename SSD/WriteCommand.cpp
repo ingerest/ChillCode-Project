@@ -13,7 +13,7 @@ bool WriteCommand::excuteCommand(string commandLine)
 
 bool WriteCommand::checkValidCmd(size_t cmdParamCount)
 {
-	return (cmdParamCount > MAX_WRITE_PARAM_COUNT);
+    return (cmdParamCount <= MAX_WRITE_PARAM_COUNT);
 }
 
 bool WriteCommand::checkVaildParameterAndStr2I(void)

@@ -60,11 +60,12 @@ size_t Command::parseCmdLine(string commandLine)
 	return cmdLine.size();
 }
 
+#if 0
 bool Command::checkValidCmd(size_t cmdParamCount)
 {
     return false;
 }
-
+#endif
 
 bool Command::checkVaildParameterAndStr2I(void)
 {

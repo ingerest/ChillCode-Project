@@ -31,7 +31,7 @@ void ReadCommand::readLba(void)
 
 bool ReadCommand::checkValidCmd(size_t cmdParamCount)
 {
-    return (cmdParamCount > MAX_READ_PARAM_COUNT);
+    return (cmdParamCount <= MAX_READ_PARAM_COUNT);
 }
 
 bool ReadCommand::excuteCommand(string commandLine)
