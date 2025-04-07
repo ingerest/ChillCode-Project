@@ -9,6 +9,7 @@ public:
 	string cmdName = "W";
 	bool excuteCommand(string commandLine);
 private:
+	size_t parseCmdLine(string commandLine);
 	bool checkVaildParameterAndStr2I(void);
 	void writeLba(void);
 	bool isNeedData(void) { return true; }
