@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "../TestShell/TestShell.cpp"
+#include "../TestShell/TestShell.h"
 std::string generateRandomValue();
 std::string makeReadResult(int lba, std::string& value);
 
