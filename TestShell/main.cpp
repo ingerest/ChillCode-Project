@@ -1,5 +1,5 @@
 #include "gmock/gmock.h"
-#include "Testshell.cpp"
+#include "Testshell.h"
 #include "../SSD/ISsdApi.h"
 #include "../SSD/Ssd.h"
 
