@@ -29,6 +29,8 @@ int App::runRunnerMode(const string& filename) {
         return -1;
     }
 
+    shell_.execute("flush");
+
     string command;
     int result;
     string resultString;
@@ -38,6 +40,7 @@ int App::runRunnerMode(const string& filename) {
         result = callDllTestScript(command);
         resultString = (result == 1) ? "PASS" : "FAIL!";
         cout << resultString << endl;
+        shell_.execute("flush");
 
         if (resultString == "FAIL!")
         {
