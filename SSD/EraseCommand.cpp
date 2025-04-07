@@ -52,6 +52,9 @@ void EraseCommand::eraseLba(void)
 
     fileIn.close();
 
+    m_commandParameter.nLba = stoi(m_commandParameter.lba);
+    m_commandParameter.nData = stoi(m_commandParameter.data);
+
     for (index = m_commandParameter.nLba; index < (m_commandParameter.nLba + m_commandParameter.nData); index++)
     {
         lines[index] = ( to_string(index) + " " + ERASE_PATTERN);
@@ -63,14 +66,6 @@ void EraseCommand::eraseLba(void)
     fileOut.close();
 }
 
-size_t EraseCommand::parseCmdLine(string commandLine)
-{
-    Command::parseCmdLine(commandLine); 
-    m_commandParameter.nLba = stoi(m_commandParameter.lba);
-    m_commandParameter.nData = stoi(m_commandParameter.data);
-
-    return size_t();
-}
 
 bool EraseCommand::checkValidCmd(size_t cmdParamCount)
 {

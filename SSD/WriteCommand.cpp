@@ -16,16 +16,6 @@ bool WriteCommand::checkValidCmd(size_t cmdParamCount)
     return (cmdParamCount <= MAX_WRITE_PARAM_COUNT);
 }
 
-size_t WriteCommand::parseCmdLine(string commandLine)
-{
-    Command::parseCmdLine(commandLine);
-    string toData = m_commandParameter.data;
-    toData.erase(0, 2);
-
-    m_commandParameter.nLba = stoi(m_commandParameter.lba);
-    m_commandParameter.nData = stoi(toData);
-    return size_t();
-}
 
 bool WriteCommand::checkVaildParameterAndStr2I(void)
 {
@@ -75,7 +65,7 @@ void WriteCommand::writeLba(void)
 
     fileIn.close();
 
-    lines[m_commandParameter.nLba] = (m_commandParameter.lba + " " + m_commandParameter.data);
+    lines[stoi(m_commandParameter.lba)] = (m_commandParameter.lba + " " + m_commandParameter.data);
 
     ofstream fileOut(SSD_NAND_PATH);
     for (const auto& l : lines) {

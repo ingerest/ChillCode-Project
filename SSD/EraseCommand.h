@@ -10,7 +10,6 @@ public:
 	bool excuteCommand(string commandLine);
 private:
 	void eraseLba(void);
-	size_t parseCmdLine(string commandLine);
 	bool checkVaildParameterAndStr2I(void);
 	bool isNeedData(void) { return true; }
 	bool checkValidCmd(size_t cmdParamCount);
