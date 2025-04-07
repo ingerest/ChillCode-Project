@@ -22,7 +22,7 @@ class TestShell {
 public:
     typedef int (*RunTestFunc)(const char*, TestShell*);
 
-    string execute(const string& userInput);
+    virtual string execute(const string& userInput);
     virtual void executeSSD(const string& command, const string& lba, const string& value);
     virtual string readFile();
 
