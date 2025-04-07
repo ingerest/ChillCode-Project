@@ -45,11 +45,12 @@ public:
     }
 
 private:
-    const std::string logFileName = "../TestShell/latest.log";
-    const std::string logDir = "../TestShell/";
+    const std::string logFileName = "../Release/Log/latest.log";
+    const std::string logDir = "../Release/Log/";
     const std::size_t maxLogFileSize = 10 * 1024; // 10KB
 
     Logger() {
+        createLogDirectoryIfNotExists();
         initializeLatestLogFile();
     }
 
@@ -58,6 +59,13 @@ private:
 
     void initializeLatestLogFile() {
         std::ofstream file(logFileName, std::ios::trunc);
+    }
+
+    void createLogDirectoryIfNotExists() {
+        std::filesystem::path logPath(logDir);
+        if (!std::filesystem::exists(logPath)) {
+            std::filesystem::create_directories(logPath);
+        }
     }
 
     std::string getTimestamp() {
