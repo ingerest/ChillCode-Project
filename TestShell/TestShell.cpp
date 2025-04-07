@@ -121,7 +121,8 @@ string TestShell::handleEraseCommand(istringstream& stream) {
 
     Logger::getInstance().log("handleEraseCommand", "Starting erase command for LBA: " + startLba);
 
-    validateLBA(startLba);
+    if (validateLBA(startLba) == false)
+        return "[Erase] Error";
     return performEraseCommand(stream, startLba);
 }
 
@@ -131,8 +132,12 @@ string TestShell::handleEraseRangeCommand(istringstream& stream) {
 
     Logger::getInstance().log("handleEraseRangeCommand", "Starting erase range command: " + startLba + " to " + endLba);
 
-    validateLBA(startLba);
-    validateLBA(endLba);
+    if (validateLBA(startLba) == false)
+        return "[Erase] Error";
+
+    if (validateLBA(endLba) == false)
+        return "[Erase] Error";
+
     return performEraseRangeCommand(startLba, endLba);
 }
 
@@ -141,9 +146,6 @@ string TestShell::handleWriteCommand(istringstream& stream) {
     stream >> lbaString >> writeValue;
 
     Logger::getInstance().log("handleWriteCommand", "Writing value: " + writeValue + " at LBA: " + lbaString);
-
-    validateLBA(lbaString);
-    validateValue(writeValue);
 
     executeSSD("W", lbaString, writeValue);
     return verifyExecution("[Write] Done", "[Write] Error");
@@ -154,8 +156,6 @@ string TestShell::handleReadCommand(istringstream& stream) {
     stream >> lbaString;
 
     Logger::getInstance().log("handleReadCommand", "Reading from LBA: " + lbaString);
-
-    validateLBA(lbaString);
 
     executeSSD("R", lbaString, "");
     string readOutput = readFile();
@@ -173,8 +173,6 @@ string TestShell::handleFullWriteCommand(istringstream& stream) {
     stream >> writeValue;
 
     Logger::getInstance().log("handleFullWriteCommand", "Full Write Command with value: " + writeValue);
-
-    validateValue(writeValue);
 
     for (int lba = START_LBA; lba <= END_LBA; ++lba) {
         executeSSD("W", to_string(lba), writeValue);
@@ -301,31 +299,35 @@ bool TestShell::runCommandAndWait(const string& exe, const string& args) {
     return true;
 }
 
-void TestShell::validateLBA(std::string lba) {
+bool TestShell::validateLBA(std::string lba) {
     int num = std::stoi(lba);
     if (num < START_LBA || num > END_LBA)
     {
-        throw invalid_argument("");
+        Logger::getInstance().log("validateLBA", "Invalid LBA :" + lba);
+        return false;
     }
+    return true;
 }
 
-void TestShell::validateValue(const std::string& value) {
+bool TestShell::validateValue(const std::string& value) {
     if (value.length() != 10 || value.substr(0, 2) != "0x") {
-        throw invalid_argument("");
+        return false;
     }
 
     for (size_t i = 2; i < value.length(); ++i) {
         char c = value[i];
         if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) {
-            throw invalid_argument("");
+            return false;
         }
     }
 
     unsigned int hexValue = std::stoul(value, nullptr, 16);
     if (hexValue > 0xFFFFFFFF)
     {
-        throw invalid_argument("");
+        return false;
     }
+
+    return true;
 }
 
 //////////////// SCRIPT ////////////////////////////

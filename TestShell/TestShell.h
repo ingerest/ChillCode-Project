@@ -55,8 +55,8 @@ private:
     string performEraseRangeCommand(const string& startLba, const string& endLba);
     string formatReadResult(const string& lba, const string& value) const;
     bool runCommandAndWait(const string& exe, const string& args);
-    void validateLBA(std::string lba);
-    void validateValue(const std::string& value);
+    bool validateLBA(std::string lba);
+    bool validateValue(const std::string& value);
 
     unsigned int generateRandomHex();
     std::string unsignedIntToHexString(unsigned int value);
