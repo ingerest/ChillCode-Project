@@ -45,19 +45,37 @@ public:
     }
 
 private:
-    const std::string logFileName = "../TestShell/latest.log";
-    const std::string logDir = "../TestShell/";
+    const std::string logFileName = "../Release/Log/latest.log";
+    const std::string logDir = "../Release/Log/";
     const std::size_t maxLogFileSize = 10 * 1024; // 10KB
 
     Logger() {
-        initializeLatestLogFile();
+        createLogDirectoryIfNotExists();
+        clearLogDirectory();
     }
 
     Logger(const Logger&) = delete;
     Logger& operator=(const Logger&) = delete;
 
-    void initializeLatestLogFile() {
-        std::ofstream file(logFileName, std::ios::trunc);
+    void clearLogDirectory() {
+        std::filesystem::path logPath(logDir);
+
+        if (!std::filesystem::exists(logPath) || !std::filesystem::is_directory(logPath)) {
+            return;
+        }
+
+        for (const auto& entry : std::filesystem::directory_iterator(logPath)) {
+            if (entry.is_regular_file()) {
+                std::filesystem::remove(entry.path());
+            }
+        }
+    }
+
+    void createLogDirectoryIfNotExists() {
+        std::filesystem::path logPath(logDir);
+        if (!std::filesystem::exists(logPath)) {
+            std::filesystem::create_directories(logPath);
+        }
     }
 
     std::string getTimestamp() {
@@ -72,7 +90,7 @@ private:
 
     std::string formatMessage(const std::string& function, const std::string& message) {
         std::ostringstream oss;
-        oss << std::left << std::setw(30) << function << " : " << message;
+        oss << std::left << std::setw(40) << function << " : " << message;
         return oss.str();
     }
 
