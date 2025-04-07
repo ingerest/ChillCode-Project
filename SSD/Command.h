@@ -12,28 +12,28 @@ struct CommandParameter
 {
 	string lba;
 	string data;
-	string OutputFile;
-	string WriteFile;
 	uint32_t	 nLba;
-	uint32_t	 nData;
+	uint32_t	 nData;  // Write : data, Erase : length
 };
 
 class Command
 {
 public:
 	string cmdName;
-	virtual bool excuteCommand(string commandLine, string OutputFile, string WriteFile) = 0;
-	virtual bool checkVaildParameter(string commandLine, string OutputFile, string WriteFile) = 0;
+	virtual bool excuteCommand(string commandLine) = 0;
+	bool checkVaildParameter(string commandLine);
 	bool updateOutputFile(string data);
 	uint32_t getLba(void) { return m_commandParameter.nLba; }
 protected:
 	CommandParameter m_commandParameter;
-	virtual bool parseCommandLine(string commandLine) = 0;
+	bool parseCmdLineAndCheckValidCmd(string commandLine);
 	bool checkVaildParameterAndStr2I(void);
 	bool updateErrorMsg2TextFile(void);
+	virtual bool checkValidCmd(size_t cmdParamCount) = 0;
+	virtual bool isNeedData(void) = 0;
+	size_t parseCmdLine(string commandLine);
 
 private:
-	const uint32_t MAX_DATA_LENGTH = 10;
 	const uint32_t MAX_LBA = 99;
 	const uint32_t MIN_LBA = 0;
 };

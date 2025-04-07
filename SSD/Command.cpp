@@ -1,6 +1,6 @@
 
 #include "Command.h"
-#include <algorithm>
+#include "FilePathConfig.h"
 
 using namespace std;
 
@@ -20,7 +20,7 @@ vector<string>splitString(const string& str)
 
 bool Command::updateOutputFile(string data)
 {
-    ofstream ouputFile(m_commandParameter.OutputFile);
+    ofstream ouputFile(SSD_OUTPUT_PATH);
     ouputFile << data;
     ouputFile.close();
     return false;
@@ -28,11 +28,44 @@ bool Command::updateOutputFile(string data)
 
 bool Command::updateErrorMsg2TextFile(void)
 {
-    ofstream ouputFile(m_commandParameter.OutputFile);
+    ofstream ouputFile(SSD_OUTPUT_PATH);
     ouputFile << "ERROR";
     ouputFile.close();
     return false;
 }
+
+bool Command::checkVaildParameter(string commandLine)
+{
+    if (false == parseCmdLineAndCheckValidCmd(commandLine)) return false;
+
+    if (false == checkVaildParameterAndStr2I()) return false;
+
+    return true;
+}
+
+bool Command::parseCmdLineAndCheckValidCmd(string commandLine)
+{
+    return checkValidCmd(parseCmdLine(commandLine));
+}
+
+size_t Command::parseCmdLine(string commandLine)
+{
+    vector<string> cmdLine = splitString(commandLine);
+
+    m_commandParameter.lba = cmdLine[1];
+	if (true == isNeedData())
+	{
+		m_commandParameter.data = cmdLine[2];
+	}
+	return cmdLine.size();
+}
+
+#if 0
+bool Command::checkValidCmd(size_t cmdParamCount)
+{
+    return false;
+}
+#endif
 
 bool Command::checkVaildParameterAndStr2I(void)
 {
@@ -47,35 +80,6 @@ bool Command::checkVaildParameterAndStr2I(void)
         return updateErrorMsg2TextFile();
     }
 
-    if (m_commandParameter.data != "")
-    {
-        if ((m_commandParameter.data.size() != MAX_DATA_LENGTH)
-            || !((m_commandParameter.data[0] == '0') && (m_commandParameter.data[1] == 'x')))
-        {
-            return false;
-        }
-        string toData = m_commandParameter.data;
-        toData.erase(0, 2);
-
-        transform(toData.begin(), toData.end(), toData.begin(), ::toupper);
-
-        for (char each : toData)
-        {
-            if (each > '9' || each < '0')
-            {
-                if (each > 'F' || each < 'A')
-                {
-                    return false;
-                }
-            }
-        }
-        m_commandParameter.data = "0x" + toData;
-
-        size_t pos;
-
-        auto aa = stoul(toData, &pos, 16);
-        m_commandParameter.nData = static_cast<uint32_t>(aa);
-    }
     m_commandParameter.nLba = stoi(m_commandParameter.lba);
 
     return true;
